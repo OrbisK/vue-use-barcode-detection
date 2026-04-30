@@ -1,0 +1,30 @@
+import { fileURLToPath } from 'node:url'
+import Vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite-plus'
+
+// `vp pack` handles library bundling (tsdown under the hood, generates .d.mts).
+// `vp dev playground` boots the playground (uses playground/index.html as entry).
+// `vp test`, `vp lint`, `vp fmt` read the config blocks below.
+export default defineConfig({
+  plugins: [Vue()],
+  resolve: {
+    alias: {
+      '@orbiks/vueuse-barcode-detection': fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+    },
+  },
+  test: {
+    globals: true,
+    coverage: {
+      reporter: ['text', 'html', 'lcov'],
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/index.ts', 'src/**/*.d.ts'],
+    },
+  },
+  lint: {
+    // Override oxlint defaults here. Empty = recommended ruleset.
+  },
+  fmt: {
+    singleQuote: true,
+    semi: false,
+  },
+})

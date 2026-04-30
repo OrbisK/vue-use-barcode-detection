@@ -1,0 +1,14 @@
+shamefullyHoist: false
+shellEmulator: true
+
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - chokidar
+  - semver
+  - undici-types
+
+packages:
+  - docs
+
+autoInstallPeers: true
+strictPeerDependencies: false
