@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 import Vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite-plus'
 
@@ -6,7 +7,10 @@ import { defineConfig } from 'vite-plus'
 // `vp dev playground` boots the playground (uses playground/index.html as entry).
 // `vp test`, `vp lint`, `vp fmt` read the config blocks below.
 export default defineConfig({
-  plugins: [Vue()],
+  plugins: [Vue(), basicSsl()],
+  server: {
+    host: true,
+  },
   resolve: {
     alias: {
       '@orbiks/vueuse-barcode-detection': fileURLToPath(new URL('./src/index.ts', import.meta.url)),
@@ -27,4 +31,5 @@ export default defineConfig({
     singleQuote: true,
     semi: false,
   },
+  staged: { '*': 'vp check --fix' },
 })
