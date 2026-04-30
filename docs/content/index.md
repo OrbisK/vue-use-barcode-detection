@@ -1,5 +1,5 @@
 ---
-title: @orbiks/vueuse-barcode-detection
+title: '@orbiks/vueuse-barcode-detection'
 description: Vue composable wrapping Barcode Detection API
 ---
 
@@ -15,10 +15,18 @@ pnpm add @orbiks/vueuse-barcode-detection vue
 
 ## Use
 
-```ts
-import { useCounter } from '@orbiks/vueuse-barcode-detection'
+```vue
+<script setup lang="ts">
+import { useTemplateRef } from 'vue'
+import { useBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
 
-const { count, increment } = useCounter(0)
+const video = useTemplateRef<HTMLVideoElement>('video')
+const { detected } = useBarcodeDetector(video)
+</script>
+
+<template>
+  <video ref="video" playsinline muted autoplay />
+</template>
 ```
 
-See the [`useCounter`](/functions/use-counter) reference for full options.
+See the [`useBarcodeDetector`](/functions/use-barcode-detector) reference for full options.

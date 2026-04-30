@@ -1,96 +1,99 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from 'vue'
+import { shallowRef, useTemplateRef } from 'vue'
+import { useBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
 
-interface DetectedBarcode {
-  rawValue: string
-  format: string
-  boundingBox: DOMRectReadOnly
-  cornerPoints: { x: number; y: number }[]
-}
-
+// 1. Live camera stream
 const video = useTemplateRef<HTMLVideoElement>('video')
-const supported = shallowRef<boolean>('BarcodeDetector' in window)
-const supportedFormats = shallowRef<string[]>([])
-const detected = shallowRef<DetectedBarcode[]>([])
-const error = shallowRef<string | null>(null)
+const {
+  isSupported,
+  supportedFormats,
+  detected: streamDetected,
+  error: streamError,
+} = useBarcodeDetector(video)
 
-let stream: MediaStream | null = null
-let detector: any = null
-let rafId: number | null = null
+// 2. Manual: video element with a "Scan" button instead of a continuous loop
+const manualVideo = useTemplateRef<HTMLVideoElement>('manualVideo')
+const {
+  detect: detectManual,
+  detected: manualDetected,
+  error: manualError,
+  start: startManual,
+  stop: stopManual,
+  isActive: manualActive,
+} = useBarcodeDetector(manualVideo, { immediate: false, camera: false })
 
-async function start() {
-  if (!supported.value) {
-    error.value = '`BarcodeDetector` is not available in this browser.'
-    return
-  }
+let manualStream: MediaStream | null = null
 
-  try {
-    supportedFormats.value = await (window as any).BarcodeDetector.getSupportedFormats()
-    detector = new (window as any).BarcodeDetector({ formats: supportedFormats.value })
-
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' } },
-      audio: false,
-    })
-
-    const el = video.value!
-    el.srcObject = stream
-    await el.play()
-
-    const tick = async () => {
-      if (!detector || !video.value) return
-      try {
-        detected.value = await detector.detect(video.value)
-      } catch (e) {
-        // detect() can throw transiently while the video isn't ready; ignore
-        console.debug('detect failed', e)
-      }
-      rafId = requestAnimationFrame(tick)
-    }
-    rafId = requestAnimationFrame(tick)
-  } catch (e: any) {
-    error.value = e?.message ?? String(e)
+async function enableManualCamera() {
+  if (manualStream) return
+  manualStream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: 'environment' } },
+    audio: false,
+  })
+  if (manualVideo.value) {
+    manualVideo.value.srcObject = manualStream
+    await manualVideo.value.play()
   }
 }
 
-function stop() {
-  if (rafId != null) cancelAnimationFrame(rafId)
-  rafId = null
-  stream?.getTracks().forEach((t) => t.stop())
-  stream = null
-  detector = null
-  if (video.value) video.value.srcObject = null
-  detected.value = []
+function disableManualCamera() {
+  stopManual()
+  manualStream?.getTracks().forEach((t) => t.stop())
+  manualStream = null
+  if (manualVideo.value) manualVideo.value.srcObject = null
 }
 
-onMounted(start)
-onBeforeUnmount(stop)
+async function scanFrame() {
+  if (!manualStream) await enableManualCamera()
+  await detectManual()
+}
+
+// 3. Image upload
+const uploadedUrl = shallowRef<string | null>(null)
+const uploadImg = useTemplateRef<HTMLImageElement>('uploadImg')
+const {
+  detect: detectImage,
+  detected: imageDetected,
+  error: imageError,
+} = useBarcodeDetector(uploadImg, { immediate: false })
+
+function onFile(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  if (uploadedUrl.value) URL.revokeObjectURL(uploadedUrl.value)
+  uploadedUrl.value = URL.createObjectURL(file)
+}
+
+async function onImageLoad() {
+  await detectImage()
+}
 </script>
 
 <template>
   <main>
     <h1>@orbiks/vueuse-barcode-detection playground</h1>
 
+    <p v-if="!isSupported" class="error">
+      <code>BarcodeDetector</code> is not available in this browser.
+    </p>
+    <p>
+      Supported formats: <code>{{ supportedFormats.join(', ') || '—' }}</code>
+    </p>
+
     <section>
-      <h2>Barcode detector POC</h2>
-      <p v-if="!supported" class="error">
-        <code>BarcodeDetector</code> is not available in this browser.
-      </p>
-      <p v-if="error" class="error">{{ error }}</p>
-      <p>
-        Supported formats: <code>{{ supportedFormats.join(', ') || '—' }}</code>
-      </p>
+      <h2>1. Live camera (continuous)</h2>
+      <p v-if="streamError" class="error">{{ streamError.message }}</p>
 
       <div class="stage">
         <video ref="video" playsinline muted autoplay />
         <svg
-          v-if="detected.length"
+          v-if="streamDetected.length"
           class="overlay"
           :viewBox="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
           preserveAspectRatio="none"
         >
           <polygon
-            v-for="(b, i) in detected"
+            v-for="(b, i) in streamDetected"
             :key="i"
             :points="b.cornerPoints.map((p) => `${p.x},${p.y}`).join(' ')"
             class="box"
@@ -99,11 +102,83 @@ onBeforeUnmount(stop)
       </div>
 
       <ul class="results">
-        <li v-for="(b, i) in detected" :key="i">
+        <li v-for="(b, i) in streamDetected" :key="i">
           <strong>{{ b.format }}</strong> — <code>{{ b.rawValue }}</code>
         </li>
-        <li v-if="!detected.length" class="muted">
+        <li v-if="!streamDetected.length" class="muted">
           No barcode detected yet — point the camera at one.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>2. Manual scan (video + button)</h2>
+      <p>
+        Camera streams without continuous detection. Press <em>Scan</em> to detect the current
+        frame.
+      </p>
+      <p v-if="manualError" class="error">{{ manualError.message }}</p>
+
+      <div class="stage">
+        <video ref="manualVideo" playsinline muted autoplay />
+      </div>
+
+      <div class="controls">
+        <button v-if="!manualStream" type="button" @click="enableManualCamera">
+          Enable camera
+        </button>
+        <template v-else>
+          <button type="button" @click="scanFrame">Scan</button>
+          <button v-if="!manualActive" type="button" @click="startManual">Start continuous</button>
+          <button v-else type="button" @click="stopManual">Stop continuous</button>
+          <button type="button" @click="disableManualCamera">Disable camera</button>
+        </template>
+      </div>
+
+      <ul class="results">
+        <li v-for="(b, i) in manualDetected" :key="i">
+          <strong>{{ b.format }}</strong> — <code>{{ b.rawValue }}</code>
+        </li>
+        <li v-if="!manualDetected.length" class="muted">Nothing scanned yet.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. Image upload</h2>
+      <p>Pick a still image — detection runs once it loads.</p>
+      <p v-if="imageError" class="error">{{ imageError.message }}</p>
+
+      <input type="file" accept="image/*" @change="onFile" />
+
+      <div v-if="uploadedUrl" class="stage">
+        <img
+          ref="uploadImg"
+          :src="uploadedUrl"
+          alt="uploaded barcode"
+          crossorigin="anonymous"
+          @load="onImageLoad"
+        />
+        <svg
+          v-if="imageDetected.length"
+          class="overlay"
+          :viewBox="`0 0 ${uploadImg?.naturalWidth ?? 0} ${uploadImg?.naturalHeight ?? 0}`"
+          preserveAspectRatio="none"
+        >
+          <polygon
+            v-for="(b, i) in imageDetected"
+            :key="i"
+            :points="b.cornerPoints.map((p) => `${p.x},${p.y}`).join(' ')"
+            class="box"
+          />
+        </svg>
+      </div>
+
+      <ul class="results">
+        <li v-for="(b, i) in imageDetected" :key="i">
+          <strong>{{ b.format }}</strong> — <code>{{ b.rawValue }}</code>
+        </li>
+        <li v-if="uploadedUrl && !imageDetected.length" class="muted">
+          No barcode found in the uploaded image.
         </li>
       </ul>
     </section>
@@ -117,6 +192,15 @@ main {
   margin: 2rem auto;
   padding: 0 1rem;
 }
+section {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
 .stage {
   position: relative;
   width: 100%;
@@ -124,12 +208,17 @@ main {
   background: #000;
   border-radius: 0.5rem;
   overflow: hidden;
+  margin-top: 0.5rem;
 }
-.stage video {
+.stage video,
+.stage img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+}
+.stage video {
+  object-fit: cover;
 }
 .overlay {
   position: absolute;
@@ -142,6 +231,20 @@ main {
   fill: rgba(0, 200, 120, 0.15);
   stroke: rgb(0, 200, 120);
   stroke-width: 4;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.controls button {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid currentColor;
+  border-radius: 0.25rem;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
 }
 .results {
   margin-top: 1rem;
@@ -160,5 +263,8 @@ main {
 }
 .error {
   color: crimson;
+}
+input[type='file'] {
+  font: inherit;
 }
 </style>

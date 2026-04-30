@@ -13,7 +13,7 @@ export default defineNuxtConfig({
     presets: [
       {
         from: '@orbiks/vueuse-barcode-detection',
-        imports: ['useCounter'],
+        imports: ['useBarcodeDetector'],
       },
     ],
   },

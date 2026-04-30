@@ -14,10 +14,25 @@ pnpm add @orbiks/vueuse-barcode-detection vue
 
 ## Use
 
-```ts
-import { useCounter } from '@orbiks/vueuse-barcode-detection'
+```vue
+<script setup lang="ts">
+import { useTemplateRef } from 'vue'
+import { useBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
 
-const { count, increment, decrement, reset } = useCounter(0, { min: 0, max: 10 })
+const video = useTemplateRef<HTMLVideoElement>('video')
+const { isSupported, detected, error } = useBarcodeDetector(video)
+</script>
+
+<template>
+  <video ref="video" playsinline muted autoplay />
+  <p v-if="!isSupported">BarcodeDetector is not available in this browser.</p>
+  <p v-if="error">{{ error.message }}</p>
+  <ul>
+    <li v-for="(b, i) in detected" :key="i">
+      <strong>{{ b.format }}</strong> — <code>{{ b.rawValue }}</code>
+    </li>
+  </ul>
+</template>
 ```
 
 ## Develop
