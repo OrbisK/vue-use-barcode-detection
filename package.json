@@ -1,11 +1,17 @@
 {
   "name": "@orbiks/vueuse-barcode-detection",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Vue composable wrapping Barcode Detection API",
   "keywords": [
+    "barcode",
+    "barcode-detection",
     "composables",
+    "qr",
+    "qr-code",
+    "scanner",
     "vue",
-    "vueuse"
+    "vueuse",
+    "webcam"
   ],
   "homepage": "https://github.com/orbisk/vueuse-barcode-detection#readme",
   "bugs": {
@@ -53,14 +59,12 @@
     "prepare": "simple-git-hooks",
     "prepublishOnly": "pnpm build"
   },
-  "dependencies": {
-    "@vueuse/core": "^14.2.1"
-  },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vue/test-utils": "^2.4.9",
+    "@vueuse/core": "^14.2.1",
     "bumpp": "^11.0.1",
     "simple-git-hooks": "^2.13.1",
     "typescript": "^6.0.3",
@@ -71,13 +75,14 @@
     "vue-tsc": "^3.2.7"
   },
   "peerDependencies": {
+    "@vueuse/core": "^14.0.0",
     "vue": "^3.5.0"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm exec vp staged"
   },
   "engines": {
-    "node": ">=24.0.0"
+    "node": ">=20.0.0"
   },
   "packageManager": "pnpm@10.33.2"
 }

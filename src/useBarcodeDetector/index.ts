@@ -98,6 +98,26 @@ function isVideoElement(value: unknown): value is HTMLVideoElement {
   return typeof HTMLVideoElement !== 'undefined' && value instanceof HTMLVideoElement
 }
 
+function isImageElement(value: unknown): value is HTMLImageElement {
+  return typeof HTMLImageElement !== 'undefined' && value instanceof HTMLImageElement
+}
+
+function whenImageReady(img: HTMLImageElement): Promise<void> {
+  if (img.complete && img.naturalWidth > 0) return Promise.resolve()
+  return new Promise((resolve) => {
+    const cleanup = () => {
+      img.removeEventListener('load', done)
+      img.removeEventListener('error', done)
+    }
+    const done = () => {
+      cleanup()
+      resolve()
+    }
+    img.addEventListener('load', done, { once: true })
+    img.addEventListener('error', done, { once: true })
+  })
+}
+
 /**
  * Reactive wrapper around the [Barcode Detection API](https://developer.mozilla.org/docs/Web/API/Barcode_Detection_API).
  *
@@ -165,8 +185,10 @@ export function useBarcodeDetector(
     const d = await ensureDetector()
     if (!d) return []
     try {
+      if (isImageElement(input)) await whenImageReady(input)
       const result = await d.detect(input)
       detected.value = result
+      error.value = null
       return result
     } catch (e) {
       error.value = e instanceof Error ? e : new Error(String(e))
@@ -181,7 +203,7 @@ export function useBarcodeDetector(
       try {
         detected.value = await detector.detect(el)
       } catch {
-        // detect() can throw transiently while the video isn't ready; ignore
+        // detect() can throw transiently while the video isn't ready -> ignore
       }
     },
     { immediate: false },

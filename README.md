@@ -9,8 +9,10 @@
 ## Install
 
 ```bash
-pnpm add @orbiks/vueuse-barcode-detection vue
+pnpm add @orbiks/vueuse-barcode-detection vue @vueuse/core
 ```
+
+`vue` and `@vueuse/core` are peer dependencies — install them alongside the package.
 
 ## Use
 
@@ -24,9 +26,11 @@ const { isSupported, detected, error } = useBarcodeDetector(video)
 </script>
 
 <template>
-  <video ref="video" playsinline muted autoplay />
   <p v-if="!isSupported">BarcodeDetector is not available in this browser.</p>
-  <p v-if="error">{{ error.message }}</p>
+  <p v-else-if="error">{{ error.message }}</p>
+
+  <video ref="video" playsinline muted autoplay />
+
   <ul>
     <li v-for="(b, i) in detected" :key="i">
       <strong>{{ b.format }}</strong> — <code>{{ b.rawValue }}</code>
@@ -34,6 +38,8 @@ const { isSupported, detected, error } = useBarcodeDetector(video)
   </ul>
 </template>
 ```
+
+> Camera access requires a secure context (HTTPS or `localhost`) and user permission.
 
 ## Develop
 

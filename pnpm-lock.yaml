@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@vueuse/core':
-        specifier: ^14.2.1
-        version: 14.2.1(vue@3.5.33(typescript@6.0.3))
     devDependencies:
       '@types/node':
         specifier: ^22.10.0
@@ -24,6 +20,9 @@ importers:
       '@vue/test-utils':
         specifier: ^2.4.9
         version: 2.4.10(@vue/compiler-dom@3.5.33)(@vue/server-renderer@3.5.33(vue@3.5.33(typescript@6.0.3)))(vue@3.5.33(typescript@6.0.3))
+      '@vueuse/core':
+        specifier: ^14.2.1
+        version: 14.2.1(vue@3.5.33(typescript@6.0.3))
       bumpp:
         specifier: ^11.0.1
         version: 11.0.1
