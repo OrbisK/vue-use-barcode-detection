@@ -90,7 +90,7 @@ async function onImageLoad() {
           v-if="streamDetected.length"
           class="overlay"
           :viewBox="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
-          preserveAspectRatio="none"
+          preserveAspectRatio="xMidYMid slice"
         >
           <polygon
             v-for="(b, i) in streamDetected"
@@ -162,7 +162,7 @@ async function onImageLoad() {
           v-if="imageDetected.length"
           class="overlay"
           :viewBox="`0 0 ${uploadImg?.naturalWidth ?? 0} ${uploadImg?.naturalHeight ?? 0}`"
-          preserveAspectRatio="none"
+          preserveAspectRatio="xMidYMid meet"
         >
           <polygon
             v-for="(b, i) in imageDetected"
