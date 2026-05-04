@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { shallowRef, useTemplateRef } from 'vue'
-import { useBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
+import { UseBarcodeDetector, useBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
 
 // 1. Live camera stream
 const video = useTemplateRef<HTMLVideoElement>('video')
@@ -144,7 +144,24 @@ async function onImageLoad() {
     </section>
 
     <section>
-      <h2>3. Image upload</h2>
+      <h2>3. All-in-one component</h2>
+      <p>
+        <code>&lt;UseBarcodeDetector /&gt;</code> renders the video and a default overlay. The
+        default slot exposes the composable state alongside.
+      </p>
+      <UseBarcodeDetector v-slot="{ detected, error: cmpError }" class="ubd-stage">
+        <p v-if="cmpError" class="error">{{ cmpError.message }}</p>
+        <ul class="results">
+          <li v-for="(b, i) in detected" :key="i">
+            <strong>{{ b.format }}</strong> — <code>{{ b.rawValue }}</code>
+          </li>
+          <li v-if="!detected.length" class="muted">Point the camera at a barcode.</li>
+        </ul>
+      </UseBarcodeDetector>
+    </section>
+
+    <section>
+      <h2>4. Image upload</h2>
       <p>Pick a still image — detection runs once it loads.</p>
       <p v-if="imageError" class="error">{{ imageError.message }}</p>
 
@@ -263,6 +280,13 @@ section:first-of-type {
 }
 .error {
   color: crimson;
+}
+.ubd-stage :deep(.use-barcode-detector) {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: 0.5rem;
+  overflow: hidden;
 }
 input[type='file'] {
   font: inherit;

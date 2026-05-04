@@ -6,3 +6,10 @@ export {
   type UseBarcodeDetectorOptions,
   type UseBarcodeDetectorReturn,
 } from './useBarcodeDetector/index.js'
+
+export {
+  UseBarcodeDetector,
+  type UseBarcodeDetectorInstance,
+  type UseBarcodeDetectorOverlaySlotProps,
+  type UseBarcodeDetectorSlotProps,
+} from './useBarcodeDetector/detector.js'

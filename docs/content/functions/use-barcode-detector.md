@@ -74,3 +74,129 @@ const result = await detect(file)
 | `detect`           | `(source?: BarcodeImageSource \| null) => Promise<DetectedBarcode[]>` | Run a single detection. Falls back to the configured source ref.         |
 | `start`            | `() => Promise<void>`                                                 | Start the camera stream and detection loop. No-op for non-video sources. |
 | `stop`             | `() => void`                                                          | Stop the loop and release the media stream.                              |
+
+## Component
+
+`<UseBarcodeDetector />` is an all-in-one wrapper around the composable. It renders a `<video>` element plus a default SVG overlay that draws polygons over detected barcodes — drop it in and you have a working scanner.
+
+- The **`overlay` slot** replaces only the default overlay.
+- The **default slot** is rendered as a sibling _after_ the stage, with full composable state and actions exposed as slot props. Use it for results lists, error messages, controls, etc.
+- The **`headless`** prop skips the built-in stage entirely; the default slot becomes the sole rendering and must wire up its own `<video>` via `setVideo`.
+
+### Drop-in scanner
+
+```vue
+<script setup lang="ts">
+import { UseBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
+</script>
+
+<template>
+  <UseBarcodeDetector />
+</template>
+```
+
+### Custom UI alongside the scanner
+
+```vue
+<template>
+  <UseBarcodeDetector v-slot="{ detected, error, isSupported }">
+    <p v-if="!isSupported">BarcodeDetector is not available.</p>
+    <p v-else-if="error">{{ error.message }}</p>
+    <ul>
+      <li v-for="b in detected" :key="b.rawValue">
+        <strong>{{ b.format }}</strong> — <code>{{ b.rawValue }}</code>
+      </li>
+    </ul>
+  </UseBarcodeDetector>
+</template>
+```
+
+### Custom overlay only
+
+```vue
+<template>
+  <UseBarcodeDetector>
+    <template #overlay="{ detected, viewBox }">
+      <svg :viewBox="viewBox" preserveAspectRatio="none">
+        <polygon
+          v-for="(b, i) in detected"
+          :key="i"
+          :points="b.cornerPoints.map((p) => `${p.x},${p.y}`).join(' ')"
+          fill="none"
+          stroke="hotpink"
+          stroke-width="6"
+        />
+      </svg>
+    </template>
+  </UseBarcodeDetector>
+</template>
+```
+
+### Fully headless
+
+```vue
+<template>
+  <UseBarcodeDetector headless v-slot="{ setVideo, detected, start, stop, isActive }">
+    <video :ref="setVideo" playsinline muted autoplay />
+    <button @click="isActive ? stop() : start()">
+      {{ isActive ? 'Stop' : 'Start' }}
+    </button>
+    <pre>{{ detected }}</pre>
+  </UseBarcodeDetector>
+</template>
+```
+
+### Component props
+
+| Name        | Type                               | Default | Description                                                                                  |
+| ----------- | ---------------------------------- | ------- | -------------------------------------------------------------------------------------------- |
+| `formats`   | `BarcodeFormat[]`                  | _all_   | Restrict detection to specific formats.                                                      |
+| `immediate` | `boolean`                          | `true`  | Auto-start the camera + detection loop once the video element is mounted.                    |
+| `camera`    | `boolean \| MediaTrackConstraints` | `true`  | `true` calls `getUserMedia` with rear camera; pass constraints to override; `false` skips.   |
+| `headless`  | `boolean`                          | `false` | Skip the built-in stage; the default slot is the only rendering and must bind its own video. |
+
+### Default slot props
+
+| Slot prop          | Type                                                                  |
+| ------------------ | --------------------------------------------------------------------- |
+| `isSupported`      | `boolean`                                                             |
+| `supportedFormats` | `BarcodeFormat[]`                                                     |
+| `detected`         | `DetectedBarcode[]`                                                   |
+| `error`            | `Error \| null`                                                       |
+| `isActive`         | `boolean`                                                             |
+| `detect`           | `(source?: BarcodeImageSource \| null) => Promise<DetectedBarcode[]>` |
+| `start`            | `() => Promise<void>`                                                 |
+| `stop`             | `() => void`                                                          |
+| `video`            | `HTMLVideoElement \| null`                                            |
+| `setVideo`         | `(el: Element \| null) => void` — bind via `:ref="setVideo"`          |
+
+### `overlay` slot props
+
+| Slot prop  | Type                       | Description                                                 |
+| ---------- | -------------------------- | ----------------------------------------------------------- |
+| `detected` | `DetectedBarcode[]`        | Latest detection result.                                    |
+| `video`    | `HTMLVideoElement \| null` | The internal video element.                                 |
+| `viewBox`  | `string`                   | Pre-computed `viewBox` matching the video's intrinsic size. |
+
+### Exposed instance
+
+The component exposes the entire return of `useBarcodeDetector` on its instance — so you can grab a template ref and call `start()`, `stop()`, etc. from outside.
+
+```vue
+<script setup lang="ts">
+import { useTemplateRef } from 'vue'
+import { UseBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
+
+const scanner = useTemplateRef<InstanceType<typeof UseBarcodeDetector>>('scanner')
+
+function rescan() {
+  scanner.value?.stop()
+  scanner.value?.start()
+}
+</script>
+
+<template>
+  <UseBarcodeDetector ref="scanner" />
+  <button @click="rescan">Restart</button>
+</template>
+```
