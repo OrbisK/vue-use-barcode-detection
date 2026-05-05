@@ -32,9 +32,6 @@ importers:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
-      vite:
-        specifier: ^7.0.0
-        version: 7.3.2(@types/node@22.19.17)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.2)(yaml@2.8.3)
       vite-plus:
         specifier: ^0.1.20
         version: 0.1.20(@opentelemetry/api@1.9.0)(@types/node@22.19.17)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.2)(typescript@6.0.3)(vite@7.3.2(@types/node@22.19.17)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.2)(yaml@2.8.3))(yaml@2.8.3)
