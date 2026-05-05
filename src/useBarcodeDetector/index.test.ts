@@ -1,4 +1,6 @@
+import { effectScope, ref } from 'vue'
 import { describe, expect, it } from 'vitest'
+import type { BarcodeFormat } from './index.js'
 import { useBarcodeDetector } from './index.js'
 
 describe('useBarcodeDetector', () => {
@@ -112,5 +114,70 @@ describe('useBarcodeDetector', () => {
     expect(out).toEqual(result)
     expect(detected.value).toEqual(result)
     expect(rejected.value).toEqual([])
+  })
+
+  it('rebuilds the detector when reactive `formats` change', async () => {
+    const constructions: Array<BarcodeFormat[] | undefined> = []
+    class FakeBarcodeDetector {
+      static getSupportedFormats() {
+        return Promise.resolve(['qr_code', 'code_128'] as BarcodeFormat[])
+      }
+      constructor(init?: { formats?: BarcodeFormat[] }) {
+        constructions.push(init?.formats)
+      }
+      detect = () => Promise.resolve([])
+    }
+    const win = { BarcodeDetector: FakeBarcodeDetector } as unknown as Window
+    const formats = ref<BarcodeFormat[] | undefined>(['qr_code'])
+
+    // Wrap in an effect scope so the watcher created by useBarcodeDetector
+    // is owned by the test (and disposed afterwards).
+    const scope = effectScope()
+    const { detect } = scope.run(() =>
+      useBarcodeDetector(null, { immediate: false, formats, window: win }),
+    )!
+
+    await detect({} as Blob)
+    expect(constructions).toEqual([['qr_code']])
+
+    formats.value = ['code_128']
+    // watch flushes on next microtask
+    await Promise.resolve()
+    await detect({} as Blob)
+    expect(constructions).toEqual([['qr_code'], ['code_128']])
+
+    scope.stop()
+  })
+
+  it('reads reactive `once` lazily on each detection', async () => {
+    let detectCalls = 0
+    class FakeBarcodeDetector {
+      static getSupportedFormats() {
+        return Promise.resolve(['qr_code'] as BarcodeFormat[])
+      }
+      detect = () => {
+        detectCalls += 1
+        return Promise.resolve([
+          { rawValue: 'x', format: 'qr_code', boundingBox: {}, cornerPoints: [] },
+        ])
+      }
+    }
+    const win = { BarcodeDetector: FakeBarcodeDetector } as unknown as Window
+    const once = ref(false)
+    const scope = effectScope()
+    const { detect } = scope.run(() =>
+      useBarcodeDetector(null, { immediate: false, once, window: win }),
+    )!
+
+    // Sanity-check: blob source is not a video element, so `once` only
+    // affects the loop's stop() call. We're verifying that toValue(once) is
+    // re-read between calls — flipping it after the composable was
+    // constructed must take effect.
+    await detect({} as Blob)
+    once.value = true
+    await detect({} as Blob)
+    expect(detectCalls).toBe(2)
+
+    scope.stop()
   })
 })
