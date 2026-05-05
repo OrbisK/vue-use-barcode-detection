@@ -10,9 +10,11 @@ const prefix = ref('')
 // live without re-mounting the composable. An empty prefix accepts all.
 const accept = (b: DetectedBarcode) => !prefix.value || b.rawValue.startsWith(prefix.value)
 
+// `margin: 4` keeps the QR-spec quiet zone — Chrome's BarcodeDetector
+// frequently refuses to lock on QRs with a smaller margin.
 const qrSrc = useQRCode(text, {
   width: 320,
-  margin: 1,
+  margin: 4,
   errorCorrectionLevel: 'M',
 })
 
@@ -65,14 +67,7 @@ const viewBox = computed(() => {
       </p>
 
       <div class="ovl-stage">
-        <img
-          v-if="qrSrc"
-          ref="img"
-          :src="qrSrc"
-          alt="generated QR code"
-          crossorigin="anonymous"
-          @load="onLoad"
-        />
+        <img v-if="qrSrc" ref="img" :src="qrSrc" alt="generated QR code" @load="onLoad" />
         <BarcodeDetectorOverlay :detected="detected" :rejected="rejected" :view-box="viewBox" />
       </div>
 
