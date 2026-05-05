@@ -25,7 +25,7 @@ jobs:
 
       - run: vp pack
 
-      - run: vp pm publish --access public --provenance
+      - run: vp pm publish --access public
 
       - uses: softprops/action-gh-release@v2
         with:
