@@ -143,13 +143,15 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
 
     // Pass the reactive options as getters so the composable picks up
     // prop changes at runtime (formats rebuilds the detector; once flips
-    // stop-on-first behavior live).
+    // stop-on-first behavior live). `accept` stays a stable function
+    // reference but reads `props.accept` on each call, so swapping the
+    // predicate from the parent flows through too.
     const result = useBarcodeDetector(video, {
       formats: () => props.formats,
       immediate: props.immediate,
       camera: props.camera,
       once: () => props.once,
-      accept: props.accept,
+      accept: (b) => (props.accept ? props.accept(b) : true),
     })
 
     expose(result)

@@ -1,7 +1,7 @@
 import type { ConfigurableWindow, UseSupportedReturn } from '@vueuse/core'
 import type { MaybeRefOrGetter, ShallowRef } from 'vue'
 import { defaultWindow, tryOnScopeDispose, useRafFn, useSupported } from '@vueuse/core'
-import { onMounted, shallowRef, toValue, watch, shallowReadonly } from 'vue'
+import { isRef, onMounted, shallowRef, toValue, watch, shallowReadonly } from 'vue'
 
 export type BarcodeFormat =
   | 'aztec'
@@ -235,11 +235,11 @@ export function useBarcodeDetector(
   }
 
   // Rebuild the detector when `formats` changes. Only watch when the option
-  // is actually a ref/getter — a plain array can never change, so there's
+  // is actually a ref or getter — a plain array can never change, so there's
   // no point spinning up a watcher. The active loop keeps running: it just
   // returns early on frames where `detector` is null, then resumes against
   // the new instance once `ensureDetector` resolves.
-  if (typeof formats === 'function' || (formats != null && 'value' in formats)) {
+  if (isRef(formats) || typeof formats === 'function') {
     watch(
       () => toValue(formats),
       () => {
