@@ -40,8 +40,8 @@
   },
   "scripts": {
     "build": "vp pack",
-    "dev": "vp dev playground",
-    "play": "vp dev playground",
+    "dev": "vp dev",
+    "play": "vp dev",
     "check": "vp check",
     "lint": "vp lint",
     "lint:fix": "vp lint --fix",

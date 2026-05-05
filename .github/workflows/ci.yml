@@ -11,19 +11,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
+      - uses: voidzero-dev/setup-vp@v1
         with:
           node-version: 24
-          cache: pnpm
+          cache: true
 
-      - run: pnpm install --frozen-lockfile
+      - run: vp install
 
-      - run: pnpm exec vp check
+      - run: vp check
 
       - run: pnpm test:types
 
-      - run: pnpm test:run
+      - run: vp test
 
-      - run: pnpm build
+      - run: vp pack
