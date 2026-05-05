@@ -1,6 +1,6 @@
 {
   "name": "@orbisk/vue-use-barcode-detection",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Vue composable wrapping Barcode Detection API",
   "keywords": [
     "barcode",
