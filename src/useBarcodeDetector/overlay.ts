@@ -3,6 +3,28 @@ import { defineComponent, h } from 'vue'
 import type { DetectedBarcode } from './index.js'
 
 /**
+ * Function returning the label to render over a detected barcode's polygon.
+ * Receives the barcode and a flag telling accepted (true) from rejected
+ * (false) detections. Return `null`, `undefined`, or an empty string to
+ * skip the label for that specific barcode.
+ *
+ * @example Show the scanned value
+ * ```ts
+ * const label: BarcodeDetectorOverlayLabel = (b) => b.rawValue
+ * ```
+ *
+ * @example Tell the user *why* a barcode was rejected
+ * ```ts
+ * const label: BarcodeDetectorOverlayLabel = (b, accepted) =>
+ *   accepted ? b.rawValue : 'invalid'
+ * ```
+ */
+export type BarcodeDetectorOverlayLabel = (
+  barcode: DetectedBarcode,
+  accepted: boolean,
+) => string | null | undefined
+
+/**
  * SVG overlay drawing polygons over each detected barcode. Sized to the
  * source's intrinsic dimensions via `viewBox`; absolutely positioned so it
  * can be stacked on top of a `<video>` / `<img>` parent.
@@ -18,6 +40,16 @@ import type { DetectedBarcode } from './index.js'
  *     <span class="my-badge">{{ detected.length }} found</span>
  *   </template>
  * </UseBarcodeDetector>
+ * ```
+ *
+ * @example Label each polygon with its scanned value
+ * ```vue
+ * <BarcodeDetectorOverlay
+ *   :detected="detected"
+ *   :rejected="rejected"
+ *   :view-box="viewBox"
+ *   :label="(b, accepted) => accepted ? b.rawValue : 'invalid'"
+ * />
  * ```
  */
 export const BarcodeDetectorOverlay = /* #__PURE__ */ defineComponent({
@@ -67,10 +99,35 @@ export const BarcodeDetectorOverlay = /* #__PURE__ */ defineComponent({
       type: Number,
       default: 4,
     },
+    /**
+     * Optional label rendered inside each polygon. Receives the barcode and
+     * an `accepted` flag (true for `detected`, false for `rejected`). Return
+     * a string to render, or a falsy value to suppress the label for that
+     * specific detection. No labels are rendered when this prop is omitted.
+     */
+    label: {
+      type: Function as PropType<BarcodeDetectorOverlayLabel>,
+      default: undefined,
+    },
+    /** Label text fill. Defaults to white so text reads on either polygon color. */
+    labelColor: {
+      type: String,
+      default: '#fff',
+    },
+    /**
+     * Label font size, in viewBox units. The polygon stroke is reused as the
+     * text outline (paint-order: stroke fill), so the label stays legible
+     * over busy backgrounds without an extra background rectangle.
+     */
+    labelFontSize: {
+      type: Number,
+      default: 24,
+    },
   },
   setup(props) {
     return () => {
       if (!props.detected.length && !props.rejected.length) return null
+
       const polygon = (b: DetectedBarcode, key: string, fill: string, stroke: string): VNode =>
         h('polygon', {
           key,
@@ -80,6 +137,60 @@ export const BarcodeDetectorOverlay = /* #__PURE__ */ defineComponent({
           'stroke-width': props.strokeWidth,
           'vector-effect': 'non-scaling-stroke',
         })
+
+      const labelFn = props.label
+      function renderLabel(
+        b: DetectedBarcode,
+        key: string,
+        stroke: string,
+        accepted: boolean,
+      ): VNode | null {
+        if (!labelFn) return null
+        const text = labelFn(b, accepted)
+        if (!text) return null
+        if (!b.cornerPoints.length) return null
+        // Anchor inside the polygon near its top-left so labels stay visible
+        // even when a barcode sits at the edge of the source. Computed from
+        // cornerPoints rather than boundingBox because some BarcodeDetector
+        // implementations leave boundingBox sparsely populated.
+        const minX = Math.min(...b.cornerPoints.map((p) => p.x))
+        const minY = Math.min(...b.cornerPoints.map((p) => p.y))
+        const pad = props.labelFontSize * 0.3
+        const x = minX + pad
+        const y = minY + props.labelFontSize
+        return h(
+          'text',
+          {
+            key,
+            x,
+            y,
+            'font-size': props.labelFontSize,
+            'font-family': 'system-ui, sans-serif',
+            'font-weight': 600,
+            fill: props.labelColor,
+            stroke,
+            'stroke-width': props.strokeWidth,
+            'paint-order': 'stroke fill',
+            'stroke-linejoin': 'round',
+            'dominant-baseline': 'alphabetic',
+            'text-anchor': 'start',
+          },
+          text,
+        )
+      }
+
+      const children: VNode[] = []
+      props.rejected.forEach((b, i) => {
+        children.push(polygon(b, `r-${i}`, props.rejectedFill, props.rejectedStroke))
+        const lbl = renderLabel(b, `r-l-${i}`, props.rejectedStroke, false)
+        if (lbl) children.push(lbl)
+      })
+      props.detected.forEach((b, i) => {
+        children.push(polygon(b, `a-${i}`, props.fill, props.stroke))
+        const lbl = renderLabel(b, `a-l-${i}`, props.stroke, true)
+        if (lbl) children.push(lbl)
+      })
+
       return h(
         'svg',
         {
@@ -95,12 +206,7 @@ export const BarcodeDetectorOverlay = /* #__PURE__ */ defineComponent({
             pointerEvents: 'none',
           },
         },
-        [
-          ...props.rejected.map((b, i) =>
-            polygon(b, `r-${i}`, props.rejectedFill, props.rejectedStroke),
-          ),
-          ...props.detected.map((b, i) => polygon(b, `a-${i}`, props.fill, props.stroke)),
-        ],
+        children,
       )
     }
   },

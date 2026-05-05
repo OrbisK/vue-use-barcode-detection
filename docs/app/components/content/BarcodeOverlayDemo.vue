@@ -71,6 +71,8 @@ function onLoad() {
           :detected="detected"
           :rejected="rejected"
           :view-box="`0 0 ${QR_SIZE} ${QR_SIZE}`"
+          :label="(b, accepted) => (accepted ? b.rawValue : 'invalid')"
+          :label-font-size="22"
         />
       </div>
 
