@@ -27,6 +27,22 @@ interface Props
    * event, no modal close.
    */
   accept?: (barcode: DetectedBarcode) => boolean
+  /**
+   * Map an accepted detection to the string written into `v-model`. Useful
+   * when the QR encodes structured data (JSON, query strings, etc.) and you
+   * only want to bind one field. Runs after `accept`. Return `null`/
+   * `undefined` to skip writing to the model for this detection (no `scan`
+   * event, no modal close — keep scanning). Defaults to `(b) => b.rawValue`.
+   *
+   * @example Pull a field out of a JSON-encoded payload
+   * ```ts
+   * transform: (b) => {
+   *   try { return JSON.parse(b.rawValue).id }
+   *   catch { return b.rawValue }
+   * }
+   * ```
+   */
+  transform?: (barcode: DetectedBarcode) => string | null | undefined
   /** Accessible label + modal title for the scan button. */
   scanLabel?: string
   /** Icon for the scan button. Pass any name your Nuxt UI iconset exposes. */
@@ -48,7 +64,7 @@ const emit = defineEmits<{
 }>()
 
 const inputProps = computed(() => {
-  const { class: _class, formats, once, accept, scanLabel, scanIcon, ...rest } = props
+  const { class: _class, formats, once, accept, transform, scanLabel, scanIcon, ...rest } = props
   return rest
 })
 
@@ -76,7 +92,12 @@ watch(video, (el) => {
 watch(detected, (list) => {
   if (!list.length) return
   const first = list[0]!
-  value.value = first.rawValue
+  const next = props.transform ? props.transform(first) : first.rawValue
+  // null/undefined from `transform` = "this scan didn't yield a usable value":
+  // skip the model write, scan event, and modal close so the user can keep
+  // scanning without dismissing the modal.
+  if (next == null) return
+  value.value = next
   emit('scan', first)
   if (props.once) open.value = false
 })
