@@ -13,15 +13,15 @@
     "vueuse",
     "webcam"
   ],
-  "homepage": "https://github.com/orbisk/vueuse-barcode-detection#readme",
+  "homepage": "https://github.com/OrbisK/vue-use-barcode-detection#readme",
   "bugs": {
-    "url": "https://github.com/orbisk/vueuse-barcode-detection/issues"
+    "url": "https://github.com/OrbisK/vue-use-barcode-detection/issues"
   },
   "license": "MIT",
-  "author": "orbisk",
+  "author": "OrbisK",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/orbisk/vueuse-barcode-detection.git"
+    "url": "git+https://github.com/OrbisK/vue-use-barcode-detection.git"
   },
   "files": [
     "dist"
