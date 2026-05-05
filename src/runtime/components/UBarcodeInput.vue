@@ -4,7 +4,6 @@ import { computed, ref, shallowRef, watch } from 'vue'
 import {
   type BarcodeFormat,
   type DetectedBarcode,
-  type UseBarcodeDetectorOptions,
   useBarcodeDetector,
 } from '@orbisk/vue-use-barcode-detection'
 import type { InputProps } from '@nuxt/ui/components/Input.vue'
@@ -15,10 +14,18 @@ interface Props
   extends /* @vue-ignore */ Omit<InputProps, 'modelValue' | 'defaultValue' | 'modelModifiers'> {
   formats?: BarcodeFormat[]
   /**
-   * Stop scanning after the first detection. Defaults to `true` so the modal
-   * closes immediately on a hit. Pass a predicate to filter (e.g. by format).
+   * Close the modal after the first accepted detection. Defaults to `true`.
+   * Set to `false` to keep scanning — every accepted barcode updates the
+   * model value and emits `scan`, but the modal stays open until dismissed.
    */
-  once?: UseBarcodeDetectorOptions['once']
+  once?: boolean
+  /**
+   * Predicate gating which detections count. Useful e.g. to filter by
+   * format or `rawValue` prefix: `:accept="(b) => b.rawValue.startsWith('XX-')"`.
+   * Detections that don't match are ignored — no model update, no `scan`
+   * event, no modal close.
+   */
+  accept?: (barcode: DetectedBarcode) => boolean
   /** Accessible label + modal title for the scan button. */
   scanLabel?: string
   /** Icon for the scan button. Pass any name your Nuxt UI iconset exposes. */
@@ -40,7 +47,7 @@ const emit = defineEmits<{
 }>()
 
 const inputProps = computed(() => {
-  const { class: _class, formats, once, scanLabel, scanIcon, ...rest } = props
+  const { class: _class, formats, once, accept, scanLabel, scanIcon, ...rest } = props
   return rest
 })
 
@@ -55,7 +62,9 @@ const isSupported = computed(() => isMounted.value && apiSupported.value)
 
 const { detected, error, start, stop } = useBarcodeDetector(video, {
   formats: props.formats,
-  once: props.once,
+  // Filter + stop are handled here so `accept` can gate everything
+  // consistently (model update, scan emit, modal close).
+  once: false,
 })
 
 watch(video, (el) => {
@@ -64,10 +73,11 @@ watch(video, (el) => {
 
 watch(detected, (list) => {
   if (!list.length) return
-  const first = list[0]!
-  value.value = first.rawValue
-  emit('scan', first)
-  open.value = false
+  const match = props.accept ? list.find(props.accept) : list[0]
+  if (!match) return
+  value.value = match.rawValue
+  emit('scan', match)
+  if (props.once) open.value = false
 })
 </script>
 
