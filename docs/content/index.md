@@ -26,9 +26,7 @@ trailing-icon: i-lucide-arrow-right
 Get started
 :::
 
-:::u-button
-
----
+## :::u-button
 
 color: neutral
 icon: simple-icons-github
