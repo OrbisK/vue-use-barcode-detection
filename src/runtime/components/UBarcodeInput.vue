@@ -7,48 +7,52 @@ import {
   type UseBarcodeDetectorOptions,
   useBarcodeDetector,
 } from '@orbisk/vue-use-barcode-detection'
+import type { InputProps } from '@nuxt/ui/components/Input.vue'
 
-const props = withDefaults(
-  defineProps<{
-    formats?: BarcodeFormat[]
-    /**
-     * Stop scanning after the first detection. Defaults to `true` so the modal
-     * closes immediately on a hit. Pass a predicate to filter (e.g. by format).
-     */
-    once?: UseBarcodeDetectorOptions['once']
-    placeholder?: string
-    /** Accessible label + modal title for the scan button. */
-    scanLabel?: string
-    /** Icon for the scan button. Pass any name your Nuxt UI iconset exposes. */
-    icon?: string
-  }>(),
-  {
-    once: true,
-    scanLabel: 'Scan barcode',
-    icon: 'i-lucide-scan-line',
-  },
-)
+defineOptions({ inheritAttrs: false })
+
+interface Props
+  extends /* @vue-ignore */ Omit<InputProps, 'modelValue' | 'defaultValue' | 'modelModifiers'> {
+  formats?: BarcodeFormat[]
+  /**
+   * Stop scanning after the first detection. Defaults to `true` so the modal
+   * closes immediately on a hit. Pass a predicate to filter (e.g. by format).
+   */
+  once?: UseBarcodeDetectorOptions['once']
+  /** Accessible label + modal title for the scan button. */
+  scanLabel?: string
+  /** Icon for the scan button. Pass any name your Nuxt UI iconset exposes. */
+  scanIcon?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  once: true,
+  scanLabel: 'Scan barcode',
+  scanIcon: 'i-lucide-scan-line',
+})
 
 const value = defineModel<string>({ default: '' })
 
 const emit = defineEmits<{
   scan: [DetectedBarcode]
+  blur: [FocusEvent]
+  change: [Event]
 }>()
+
+const inputProps = computed(() => {
+  const { class: _class, formats, once, scanLabel, scanIcon, ...rest } = props
+  return rest
+})
 
 const open = ref(false)
 const video = shallowRef<HTMLVideoElement | null>(null)
 
-// Match `UseBarcodeDetector`'s SSR strategy: emit `false` during SSR and the
-// client's first render, then flip after hydration so the trailing button
-// doesn't cause a hydration mismatch.
 const isMounted = useMounted()
 const apiSupported = useSupported(
   () => typeof window !== 'undefined' && 'BarcodeDetector' in window,
 )
 const isSupported = computed(() => isMounted.value && apiSupported.value)
 
-// Drive `start`/`stop` manually so reopening the modal re-arms the camera.
-// `immediate: true` would only fire once on initial mount.
 const { detected, error, start, stop } = useBarcodeDetector(video, {
   formats: props.formats,
   once: props.once,
@@ -68,10 +72,24 @@ watch(detected, (list) => {
 </script>
 
 <template>
-  <UFieldGroup class="w-full">
-    <UInput v-model="value" :placeholder="placeholder" class="flex-1" />
+  <UFieldGroup :class="['w-full', props.class]">
+    <UInput
+      v-bind="{ ...$attrs, ...inputProps }"
+      v-model="value"
+      class="flex-1"
+      @blur="emit('blur', $event)"
+      @change="emit('change', $event)"
+    />
     <UModal v-if="isSupported" v-model:open="open" :title="scanLabel" @after:leave="stop">
-      <UButton :icon="icon" color="neutral" variant="subtle" square :aria-label="scanLabel" />
+      <UButton
+        :icon="scanIcon"
+        :size="size"
+        :color="color"
+        :disabled="disabled"
+        variant="subtle"
+        square
+        :aria-label="scanLabel"
+      />
       <template #body>
         <div v-if="open" class="relative w-full">
           <video ref="video" playsinline muted autoplay class="block w-full rounded-lg" />
