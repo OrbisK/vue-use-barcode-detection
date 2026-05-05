@@ -24,7 +24,7 @@ const { isSupported, supportedFormats, detected, error, isActive, start, stop } 
           v-if="detected.length"
           class="ubd-overlay"
           :viewBox="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
-          preserveAspectRatio="none"
+          preserveAspectRatio="xMidYMid slice"
         >
           <polygon
             v-for="(b, i) in detected"
