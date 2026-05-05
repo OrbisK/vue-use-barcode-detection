@@ -7,12 +7,12 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   vite: {
     optimizeDeps: {
-      include: [
-        '@vue/devtools-core',
-        '@vue/devtools-kit',
-        '@vueuse/core',
-        '@orbisk/vue-use-barcode-detection',
-      ],
+      include: ['@vue/devtools-core', '@vue/devtools-kit', '@vueuse/core'],
+      // Keep the workspace package out of the pre-bundle. Otherwise Vite
+      // freezes its export list at first dev-server start, and any new
+      // export (e.g. BarcodeDetectorOverlay) shipped by `vp pack` looks
+      // missing until the cache under `node_modules/.cache/vite` is wiped.
+      exclude: ['@orbisk/vue-use-barcode-detection'],
     },
   },
 })
