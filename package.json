@@ -44,7 +44,7 @@
   },
   "scripts": {
     "build": "vp pack",
-    "dev": "vp dev",
+    "dev": "vp pack --watch",
     "play": "vp dev",
     "check": "vp check",
     "lint": "vp lint",
@@ -68,6 +68,7 @@
   },
   "devDependencies": {
     "@nuxt/schema": "^4.0.0",
+    "@nuxt/ui": "^4.7.1",
     "@types/node": "^22.10.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-vue": "^6.0.6",
@@ -82,8 +83,14 @@
     "vue-tsc": "^3.2.7"
   },
   "peerDependencies": {
+    "@nuxt/ui": "^4.0.0",
     "@vueuse/core": "^14.0.0",
     "vue": "^3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "@nuxt/ui": {
+      "optional": true
+    }
   },
   "packageManager": "pnpm@11.0.5+sha512.94fa09e72016402aefce788e46994e18eb1922998b16b6fd5aa6bafd8ae4dea05d0852f60247fdb7d5ab8199a7b0beda830398f3f80cb9f822398522a1535481"
 }

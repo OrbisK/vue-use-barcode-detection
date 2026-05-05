@@ -9,6 +9,7 @@ import { defineConfig } from 'vite-plus'
 export default defineConfig({
   pack: {
     entry: ['src/index.ts', 'src/nuxt.ts'],
+    copy: [{ from: 'src/runtime/**', to: 'dist', flatten: false }],
     deps: {
       neverBundle: ['@nuxt/kit', '@nuxt/schema'],
     },

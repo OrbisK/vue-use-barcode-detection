@@ -15,6 +15,9 @@ importers:
       '@nuxt/schema':
         specifier: ^4.0.0
         version: 4.4.4
+      '@nuxt/ui':
+        specifier: ^4.7.1
+        version: 4.7.1(@internationalized/date@3.12.1)(@internationalized/number@3.6.6)(@nuxt/content@3.13.0(better-sqlite3@12.9.0)(magicast@0.5.2))(@tiptap/extensions@3.22.5(@tiptap/core@3.22.5(@tiptap/pm@3.22.5))(@tiptap/pm@3.22.5))(@tiptap/y-tiptap@3.0.3(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.8)(y-protocols@1.0.7(yjs@13.6.30))(yjs@13.6.30))(db0@0.3.4(better-sqlite3@12.9.0))(embla-carousel@8.6.0)(ioredis@5.10.1)(magicast@0.5.2)(tailwindcss@4.2.4)(typescript@6.0.3)(vite@7.3.2(@types/node@22.19.17)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.2)(yaml@2.8.3))(vue-router@5.0.6(@vue/compiler-sfc@3.5.33)(vue@3.5.33(typescript@6.0.3)))(vue@3.5.33(typescript@6.0.3))(yjs@13.6.30)(zod@4.4.3)
       '@types/node':
         specifier: ^22.10.0
         version: 22.19.17
@@ -54,6 +57,9 @@ importers:
 
   docs:
     dependencies:
+      '@nuxt/ui':
+        specifier: 4.7.1
+        version: 4.7.1(@internationalized/date@3.12.1)(@internationalized/number@3.6.6)(@nuxt/content@3.13.0(better-sqlite3@12.9.0)(magicast@0.5.2))(@tiptap/extensions@3.22.5(@tiptap/core@3.22.5(@tiptap/pm@3.22.5))(@tiptap/pm@3.22.5))(@tiptap/y-tiptap@3.0.3(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.8)(y-protocols@1.0.7(yjs@13.6.30))(yjs@13.6.30))(db0@0.3.4(better-sqlite3@12.9.0))(embla-carousel@8.6.0)(ioredis@5.10.1)(magicast@0.5.2)(tailwindcss@4.2.4)(typescript@6.0.3)(vite@7.3.2(@types/node@22.19.17)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.2)(yaml@2.8.3))(vue-router@5.0.6(@vue/compiler-sfc@3.5.33)(vue@3.5.33(typescript@6.0.3)))(vue@3.5.33(typescript@6.0.3))(yjs@13.6.30)(zod@4.4.3)
       '@orbisk/vue-use-barcode-detection':
         specifier: workspace:*
         version: link:..
@@ -66,6 +72,12 @@ importers:
       nuxt:
         specifier: ^4.4.2
         version: 4.4.4(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@parcel/watcher@2.5.6)(@types/node@22.19.17)(@vue/compiler-sfc@3.5.33)(better-sqlite3@12.9.0)(cac@6.7.14)(db0@0.3.4(better-sqlite3@12.9.0))(eslint@10.3.0(jiti@2.6.1))(ioredis@5.10.1)(lightningcss@1.32.0)(magicast@0.5.2)(optionator@0.9.4)(oxlint@1.61.0(oxlint-tsgolint@0.22.0))(rollup-plugin-visualizer@7.0.1(rollup@4.60.2))(rollup@4.60.2)(srvx@0.11.15)(terser@5.46.2)(typescript@6.0.3)(vite@7.3.2(@types/node@22.19.17)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.2)(yaml@2.8.3))(vue-tsc@3.2.7(typescript@6.0.3))(yaml@2.8.3)
+      tailwindcss:
+        specifier: ^4.2.4
+        version: 4.2.4
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
       vue:
         specifier: ^3.5.0
         version: 3.5.33(typescript@6.0.3)
@@ -8702,9 +8714,9 @@ snapshots:
       '@tiptap/suggestion': 3.22.5(@tiptap/core@3.22.5(@tiptap/pm@3.22.5))(@tiptap/pm@3.22.5)
       '@tiptap/vue-3': 3.22.5(@floating-ui/dom@1.7.6)(@tiptap/core@3.22.5(@tiptap/pm@3.22.5))(@tiptap/pm@3.22.5)(vue@3.5.33(typescript@6.0.3))
       '@unhead/vue': 2.1.13(vue@3.5.33(typescript@6.0.3))
-      '@vueuse/core': 14.2.1(vue@3.5.33(typescript@6.0.3))
+      '@vueuse/core': 14.3.0(vue@3.5.33(typescript@6.0.3))
       '@vueuse/integrations': 14.3.0(fuse.js@7.3.0)(vue@3.5.33(typescript@6.0.3))
-      '@vueuse/shared': 14.2.1(vue@3.5.33(typescript@6.0.3))
+      '@vueuse/shared': 14.3.0(vue@3.5.33(typescript@6.0.3))
       colortranslator: 5.0.0
       consola: 3.4.2
       defu: 6.1.7
@@ -8720,7 +8732,7 @@ snapshots:
       knitwork: 1.3.0
       magic-string: 0.30.21
       mlly: 1.8.2
-      motion-v: 2.2.1(@vueuse/core@14.2.1(vue@3.5.33(typescript@6.0.3)))(vue@3.5.33(typescript@6.0.3))
+      motion-v: 2.2.1(@vueuse/core@14.3.0(vue@3.5.33(typescript@6.0.3)))(vue@3.5.33(typescript@6.0.3))
       ohash: 2.0.11
       pathe: 2.0.3
       reka-ui: 2.9.6(vue@3.5.33(typescript@6.0.3))
@@ -8732,7 +8744,7 @@ snapshots:
       typescript: 6.0.3
       ufo: 1.6.4
       unplugin: 3.0.0
-      unplugin-auto-import: 21.0.0(@nuxt/kit@4.4.4(magicast@0.5.2))(@vueuse/core@14.2.1(vue@3.5.33(typescript@6.0.3)))
+      unplugin-auto-import: 21.0.0(@nuxt/kit@4.4.4(magicast@0.5.2))(@vueuse/core@14.3.0(vue@3.5.33(typescript@6.0.3)))
       unplugin-vue-components: 32.0.0(@nuxt/kit@4.4.4(magicast@0.5.2))(vue@3.5.33(typescript@6.0.3))
       vaul-vue: 0.4.1(reka-ui@2.9.6(vue@3.5.33(typescript@6.0.3)))(vue@3.5.33(typescript@6.0.3))
       vue-component-type-helpers: 3.2.7
@@ -12967,6 +12979,19 @@ snapshots:
       - react
       - react-dom
 
+  motion-v@2.2.1(@vueuse/core@14.3.0(vue@3.5.33(typescript@6.0.3)))(vue@3.5.33(typescript@6.0.3)):
+    dependencies:
+      '@vueuse/core': 14.3.0(vue@3.5.33(typescript@6.0.3))
+      framer-motion: 12.38.0
+      hey-listen: 1.0.8
+      motion-dom: 12.38.0
+      motion-utils: 12.36.0
+      vue: 3.5.33(typescript@6.0.3)
+    transitivePeerDependencies:
+      - '@emotion/is-prop-valid'
+      - react
+      - react-dom
+
   mrmime@2.0.1: {}
 
   ms@2.1.3: {}
@@ -14172,8 +14197,8 @@ snapshots:
       '@internationalized/date': 3.12.1
       '@internationalized/number': 3.6.6
       '@tanstack/vue-virtual': 3.13.24(vue@3.5.33(typescript@6.0.3))
-      '@vueuse/core': 14.2.1(vue@3.5.33(typescript@6.0.3))
-      '@vueuse/shared': 14.2.1(vue@3.5.33(typescript@6.0.3))
+      '@vueuse/core': 14.3.0(vue@3.5.33(typescript@6.0.3))
+      '@vueuse/shared': 14.3.0(vue@3.5.33(typescript@6.0.3))
       aria-hidden: 1.2.6
       defu: 6.1.7
       ohash: 2.0.11
@@ -14917,7 +14942,7 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  unplugin-auto-import@21.0.0(@nuxt/kit@4.4.4(magicast@0.5.2))(@vueuse/core@14.2.1(vue@3.5.33(typescript@6.0.3))):
+  unplugin-auto-import@21.0.0(@nuxt/kit@4.4.4(magicast@0.5.2))(@vueuse/core@14.3.0(vue@3.5.33(typescript@6.0.3))):
     dependencies:
       local-pkg: 1.1.2
       magic-string: 0.30.21
@@ -14927,7 +14952,7 @@ snapshots:
       unplugin-utils: 0.3.1
     optionalDependencies:
       '@nuxt/kit': 4.4.4(magicast@0.5.2)
-      '@vueuse/core': 14.2.1(vue@3.5.33(typescript@6.0.3))
+      '@vueuse/core': 14.3.0(vue@3.5.33(typescript@6.0.3))
 
   unplugin-utils@0.3.1:
     dependencies:

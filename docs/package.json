@@ -10,10 +10,13 @@
     "prepare": "nuxi prepare"
   },
   "dependencies": {
+    "@nuxt/ui": "4.7.1",
     "@orbisk/vue-use-barcode-detection": "workspace:*",
     "better-sqlite3": "^12.6.2",
     "docus": "latest",
     "nuxt": "^4.4.2",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^6.0.3",
     "vue": "^3.5.0"
   }
 }
