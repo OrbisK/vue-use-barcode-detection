@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
-import { useBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
+import { BarcodeDetectorOverlay, useBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
 
 const video = useTemplateRef<HTMLVideoElement>('video')
 const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(video)
@@ -18,19 +18,10 @@ const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(vi
 
     <div class="stage">
       <video ref="video" playsinline muted autoplay />
-      <svg
-        v-if="detected.length"
-        class="overlay"
-        :viewBox="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
-        preserveAspectRatio="none"
-      >
-        <polygon
-          v-for="(b, i) in detected"
-          :key="i"
-          :points="b.cornerPoints.map((p) => `${p.x},${p.y}`).join(' ')"
-          class="box"
-        />
-      </svg>
+      <BarcodeDetectorOverlay
+        :detected="detected"
+        :view-box="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
+      />
     </div>
 
     <ul class="results">
@@ -61,18 +52,6 @@ const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(vi
   height: 100%;
   object-fit: cover;
   display: block;
-}
-.overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-.box {
-  fill: rgba(0, 200, 120, 0.15);
-  stroke: rgb(0, 200, 120);
-  stroke-width: 4;
 }
 .results {
   margin-top: 1rem;
