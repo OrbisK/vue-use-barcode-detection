@@ -47,6 +47,9 @@ importers:
 
   docs:
     dependencies:
+      '@orbisk/vue-use-barcode-detection':
+        specifier: workspace:*
+        version: link:..
       better-sqlite3:
         specifier: ^12.6.2
         version: 12.9.0
