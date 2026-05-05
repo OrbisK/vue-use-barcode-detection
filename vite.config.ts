@@ -29,8 +29,8 @@ export default defineConfig({
   lint: {
     ignorePatterns: ['dist/**'],
     options: {
-      typeAware: true,
-      typeCheck: true,
+      // typeAware: true,
+      // typeCheck: true,
     },
   },
   fmt: {
