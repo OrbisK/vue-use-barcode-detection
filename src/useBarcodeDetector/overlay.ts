@@ -146,18 +146,36 @@ export const BarcodeDetectorOverlay = /* #__PURE__ */ defineComponent({
         accepted: boolean,
       ): VNode | null {
         if (!labelFn) return null
-        const text = labelFn(b, accepted)
-        if (!text) return null
+        const raw = labelFn(b, accepted)
+        if (!raw) return null
         if (!b.cornerPoints.length) return null
         // Anchor inside the polygon near its top-left so labels stay visible
         // even when a barcode sits at the edge of the source. Computed from
         // cornerPoints rather than boundingBox because some BarcodeDetector
         // implementations leave boundingBox sparsely populated.
-        const minX = Math.min(...b.cornerPoints.map((p) => p.x))
-        const minY = Math.min(...b.cornerPoints.map((p) => p.y))
+        const xs = b.cornerPoints.map((p) => p.x)
+        const ys = b.cornerPoints.map((p) => p.y)
+        const minX = Math.min(...xs)
+        const maxX = Math.max(...xs)
+        const minY = Math.min(...ys)
         const pad = props.labelFontSize * 0.3
         const x = minX + pad
         const y = minY + props.labelFontSize
+
+        // Truncate to the polygon's width using a proportional-font
+        // heuristic — exact text measurement isn't possible on the server
+        // and would require a hidden DOM node on the client. The 0.55
+        // multiplier is roughly the average glyph advance / font-size
+        // ratio for system-ui, slightly conservative so we under-fill
+        // rather than overflow. If even a single ellipsis won't fit, drop
+        // the label entirely instead of rendering a sliver of garbage.
+        const polygonWidth = maxX - minX
+        const available = polygonWidth - pad * 2
+        const charWidth = props.labelFontSize * 0.55
+        const maxChars = Math.floor(available / charWidth)
+        if (maxChars < 1) return null
+        const text =
+          raw.length > maxChars ? (maxChars > 1 ? raw.slice(0, maxChars - 1) + '…' : '…') : raw
         return h(
           'text',
           {

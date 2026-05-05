@@ -114,29 +114,30 @@ describe('BarcodeDetectorOverlay', () => {
   it('renders the label returned by the function for each barcode', async () => {
     const html = await render({
       detected: [
+        // ≥80 units wide so a 5-char label fits at fontSize 20.
         fakeBarcode('hello', [
           { x: 10, y: 20 },
-          { x: 30, y: 20 },
-          { x: 30, y: 40 },
+          { x: 110, y: 20 },
+          { x: 110, y: 40 },
           { x: 10, y: 40 },
         ]),
       ],
       rejected: [
-        fakeBarcode('nope', [
+        fakeBarcode('invalid', [
           { x: 50, y: 60 },
-          { x: 70, y: 60 },
-          { x: 70, y: 80 },
+          { x: 200, y: 60 },
+          { x: 200, y: 80 },
           { x: 50, y: 80 },
         ]),
       ],
-      viewBox: '0 0 100 100',
+      viewBox: '0 0 200 200',
       label: (b: DetectedBarcode, accepted: boolean) => (accepted ? b.rawValue : 'invalid'),
       labelFontSize: 20,
     })
     expect(html.match(/<text/g) ?? []).toHaveLength(2)
     expect(html).toContain('>hello</text>')
     expect(html).toContain('>invalid</text>')
-    // Anchored at top-left of cornerPoints (with padding) + fontSize for baseline
+    // Anchored at top-left of cornerPoints (minX + pad, minY + fontSize).
     expect(html).toContain('x="16"')
     expect(html).toContain('y="40"')
     expect(html).toContain('x="56"')
@@ -148,18 +149,18 @@ describe('BarcodeDetectorOverlay', () => {
       detected: [
         fakeBarcode('keep', [
           { x: 0, y: 0 },
-          { x: 10, y: 0 },
-          { x: 10, y: 10 },
-          { x: 0, y: 10 },
+          { x: 200, y: 0 },
+          { x: 200, y: 50 },
+          { x: 0, y: 50 },
         ]),
         fakeBarcode('drop', [
-          { x: 20, y: 20 },
-          { x: 30, y: 20 },
-          { x: 30, y: 30 },
-          { x: 20, y: 30 },
+          { x: 0, y: 60 },
+          { x: 200, y: 60 },
+          { x: 200, y: 100 },
+          { x: 0, y: 100 },
         ]),
       ],
-      viewBox: '0 0 100 100',
+      viewBox: '0 0 200 200',
       label: (b: DetectedBarcode) => (b.rawValue === 'drop' ? null : b.rawValue),
     })
     expect(html.match(/<text/g) ?? []).toHaveLength(1)
@@ -167,17 +168,73 @@ describe('BarcodeDetectorOverlay', () => {
     expect(html).not.toContain('>drop</text>')
   })
 
+  it('truncates labels that would overflow the polygon width', async () => {
+    // Polygon is 80 units wide. fontSize 20 → charWidth ≈ 11 → ~6 chars
+    // max once padding is subtracted.
+    const html = await render({
+      detected: [
+        fakeBarcode('this-is-a-very-long-value', [
+          { x: 10, y: 10 },
+          { x: 90, y: 10 },
+          { x: 90, y: 30 },
+          { x: 10, y: 30 },
+        ]),
+      ],
+      viewBox: '0 0 100 100',
+      label: (b: DetectedBarcode) => b.rawValue,
+      labelFontSize: 20,
+    })
+    expect(html).toMatch(/<text[^>]*>[^<]*…<\/text>/)
+    // The full string must not appear verbatim — it would overflow.
+    expect(html).not.toContain('>this-is-a-very-long-value</text>')
+  })
+
+  it('keeps short labels untouched', async () => {
+    const html = await render({
+      detected: [
+        fakeBarcode('ok', [
+          { x: 0, y: 0 },
+          { x: 200, y: 0 },
+          { x: 200, y: 50 },
+          { x: 0, y: 50 },
+        ]),
+      ],
+      viewBox: '0 0 200 200',
+      label: (b: DetectedBarcode) => b.rawValue,
+      labelFontSize: 20,
+    })
+    expect(html).toContain('>ok</text>')
+    expect(html).not.toContain('…')
+  })
+
+  it('skips labels entirely when the polygon is too narrow for any text', async () => {
+    const html = await render({
+      detected: [
+        fakeBarcode('hidden', [
+          { x: 0, y: 0 },
+          { x: 4, y: 0 },
+          { x: 4, y: 4 },
+          { x: 0, y: 4 },
+        ]),
+      ],
+      viewBox: '0 0 100 100',
+      label: () => 'hidden',
+      labelFontSize: 24,
+    })
+    expect(html).not.toContain('<text')
+  })
+
   it('uses the polygon stroke as the label outline so text reads on busy backgrounds', async () => {
     const html = await render({
       detected: [
         fakeBarcode('a', [
           { x: 0, y: 0 },
-          { x: 10, y: 0 },
-          { x: 10, y: 10 },
-          { x: 0, y: 10 },
+          { x: 200, y: 0 },
+          { x: 200, y: 60 },
+          { x: 0, y: 60 },
         ]),
       ],
-      viewBox: '0 0 100 100',
+      viewBox: '0 0 200 200',
       stroke: '#123456',
       label: () => 'value',
       labelColor: '#abcdef',
