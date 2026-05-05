@@ -57,8 +57,12 @@ declare global {
 }
 
 export interface UseBarcodeDetectorOptions extends ConfigurableWindow {
-  /** Formats to detect. Defaults to every format supported by the browser. */
-  formats?: BarcodeFormat[]
+  /**
+   * Formats to detect. Defaults to every format supported by the browser.
+   * Reactive: pass a ref or a getter to switch formats at runtime; the
+   * underlying `BarcodeDetector` is rebuilt when the value changes.
+   */
+  formats?: MaybeRefOrGetter<BarcodeFormat[] | undefined>
   /**
    * Auto-start once the source is available.
    * For a video source, starts the camera stream and detection loop.
@@ -83,13 +87,23 @@ export interface UseBarcodeDetectorOptions extends ConfigurableWindow {
    * - `true`: as soon as a barcode is detected (and accepted, if `accept` is
    *   set), stop the detection loop and release the camera (video sources).
    *   The detection result remains in `detected`. Call `start()` to re-arm.
+   *
+   * Reactive: pass a ref or getter to flip the behavior at runtime. The
+   * value is read at each detection, so flipping it after the loop has
+   * already stopped won't auto-restart it — call `start()` for that.
    */
-  once?: boolean
+  once?: MaybeRefOrGetter<boolean | undefined>
   /**
    * Predicate gating which detections count. Non-matching barcodes are
    * filtered out of `detected` (and the `detect()` return value), so they
    * don't trigger watchers or `once`. Useful e.g. to filter by format or
    * `rawValue` prefix: `accept: (b) => b.rawValue.startsWith('XX-')`.
+   *
+   * Not made `MaybeRefOrGetter` on purpose: `toValue` can't disambiguate a
+   * predicate from a getter that returns a predicate. The closure captures
+   * any reactive deps you reference, so a single closure already gives you
+   * runtime-reactive behavior — e.g.
+   * `accept: (b) => !prefix.value || b.rawValue.startsWith(prefix.value)`.
    */
   accept?: (barcode: DetectedBarcode) => boolean
 }
@@ -214,10 +228,26 @@ export function useBarcodeDetector(
       const Ctor = window.BarcodeDetector!
       const available = await Ctor.getSupportedFormats()
       supportedFormats.value = available
-      detector = new Ctor({ formats: formats ?? available })
+      detector = new Ctor({ formats: toValue(formats) ?? available })
       return detector
     })()
     return detectorInit
+  }
+
+  // Rebuild the detector when `formats` changes. Only watch when the option
+  // is actually a ref/getter — a plain array can never change, so there's
+  // no point spinning up a watcher. The active loop keeps running: it just
+  // returns early on frames where `detector` is null, then resumes against
+  // the new instance once `ensureDetector` resolves.
+  if (typeof formats === 'function' || (formats != null && 'value' in formats)) {
+    watch(
+      () => toValue(formats),
+      () => {
+        detector = null
+        detectorInit = null
+        void ensureDetector()
+      },
+    )
   }
 
   async function detect(src?: BarcodeImageSource | null): Promise<DetectedBarcode[]> {
@@ -231,7 +261,7 @@ export function useBarcodeDetector(
       detected.value = accepted
       rejected.value = r
       error.value = null
-      if (once && accepted.length && isVideoElement(input)) stop()
+      if (toValue(once) && accepted.length && isVideoElement(input)) stop()
       return accepted
     } catch (e) {
       error.value = e instanceof Error ? e : new Error(String(e))
@@ -247,7 +277,7 @@ export function useBarcodeDetector(
         const { accepted, rejected: r } = partition(await detector.detect(el))
         detected.value = accepted
         rejected.value = r
-        if (once && accepted.length) stop()
+        if (toValue(once) && accepted.length) stop()
       } catch {
         // detect() can throw transiently while the video isn't ready -> ignore
       }

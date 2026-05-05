@@ -141,11 +141,14 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
     }
     const videoRef: VNodeRef = (el) => setVideo(el as Element | null)
 
+    // Pass the reactive options as getters so the composable picks up
+    // prop changes at runtime (formats rebuilds the detector; once flips
+    // stop-on-first behavior live).
     const result = useBarcodeDetector(video, {
-      formats: props.formats,
+      formats: () => props.formats,
       immediate: props.immediate,
       camera: props.camera,
-      once: props.once,
+      once: () => props.once,
       accept: props.accept,
     })
 
