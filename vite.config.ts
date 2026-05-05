@@ -27,7 +27,11 @@ export default defineConfig({
     },
   },
   lint: {
-    // Override oxlint defaults here. Empty = recommended ruleset.
+    ignorePatterns: ['dist/**'],
+    options: {
+      typeAware: true,
+      typeCheck: true,
+    },
   },
   fmt: {
     singleQuote: true,

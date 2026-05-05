@@ -6,11 +6,8 @@ export default defineAppConfig({
   header: {
     title: '@orbisk/vue-use-barcode-detection',
   },
-  socials: {
-    github: 'https://github.com/orbisk/vueuse-barcode-detection',
-  },
   github: {
-    url: 'https://github.com/orbisk/vueuse-barcode-detection',
+    url: 'https://github.com/orbisk/vue-use-barcode-detection',
     branch: 'main',
     rootDir: 'docs',
   },
