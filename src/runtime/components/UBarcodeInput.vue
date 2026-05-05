@@ -68,32 +68,24 @@ watch(detected, (list) => {
 </script>
 
 <template>
-  <UInput v-model="value" :placeholder="placeholder">
-    <template v-if="isSupported" #trailing>
-      <UModal v-model:open="open" :title="scanLabel" @after:leave="stop">
-        <UButton
-          :icon="icon"
-          color="neutral"
-          variant="ghost"
-          size="sm"
-          square
-          :aria-label="scanLabel"
-        />
-        <template #body>
-          <div v-if="open" class="relative w-full">
-            <video ref="video" playsinline muted autoplay class="block w-full rounded-lg" />
-            <UAlert
-              v-if="error"
-              color="error"
-              variant="soft"
-              icon="i-lucide-circle-alert"
-              :title="error.name || 'Scanner error'"
-              :description="error.message"
-              class="mt-2"
-            />
-          </div>
-        </template>
-      </UModal>
-    </template>
-  </UInput>
+  <UFieldGroup class="w-full">
+    <UInput v-model="value" :placeholder="placeholder" class="flex-1" />
+    <UModal v-if="isSupported" v-model:open="open" :title="scanLabel" @after:leave="stop">
+      <UButton :icon="icon" color="neutral" variant="subtle" square :aria-label="scanLabel" />
+      <template #body>
+        <div v-if="open" class="relative w-full">
+          <video ref="video" playsinline muted autoplay class="block w-full rounded-lg" />
+          <UAlert
+            v-if="error"
+            color="error"
+            variant="soft"
+            icon="i-lucide-circle-alert"
+            :title="error.name || 'Scanner error'"
+            :description="error.message"
+            class="mt-2"
+          />
+        </div>
+      </template>
+    </UModal>
+  </UFieldGroup>
 </template>
