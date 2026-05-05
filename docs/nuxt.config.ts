@@ -5,12 +5,12 @@ export default defineNuxtConfig({
   extends: ['docus'],
   compatibilityDate: '2026-01-01',
   alias: {
-    '@orbiks/vueuse-barcode-detection': fileURLToPath(new URL('../src/index.ts', import.meta.url)),
+    '@orbiks/vue-use-barcode-detection': fileURLToPath(new URL('../src/index.ts', import.meta.url)),
   },
   imports: {
     presets: [
       {
-        from: '@orbiks/vueuse-barcode-detection',
+        from: '@orbiks/vue-use-barcode-detection',
         imports: ['useBarcodeDetector'],
       },
     ],
