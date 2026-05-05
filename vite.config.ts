@@ -13,7 +13,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@orbiks/vueuse-barcode-detection': fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+      '@orbisk/vue-use-barcode-detection': fileURLToPath(
+        new URL('./src/index.ts', import.meta.url),
+      ),
     },
   },
   test: {

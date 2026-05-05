@@ -18,7 +18,7 @@ For an `HTMLVideoElement` source, manages a `getUserMedia` stream and runs detec
 ```vue
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
-import { useBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
+import { useBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
 
 const video = useTemplateRef<HTMLVideoElement>('video')
 const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(video)
@@ -34,7 +34,7 @@ const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(vi
 ```vue
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
-import { useBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
+import { useBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
 
 const img = useTemplateRef<HTMLImageElement>('img')
 const { detected } = useBarcodeDetector(img)
@@ -87,7 +87,7 @@ const result = await detect(file)
 
 ```vue
 <script setup lang="ts">
-import { UseBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
+import { UseBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
 </script>
 
 <template>
@@ -201,7 +201,7 @@ The component exposes the entire return of `useBarcodeDetector` on its instance 
 ```vue
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
-import { UseBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
+import { UseBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
 
 const scanner = useTemplateRef<InstanceType<typeof UseBarcodeDetector>>('scanner')
 

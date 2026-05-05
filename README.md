@@ -1,15 +1,15 @@
-# @orbiks/vueuse-barcode-detection
+# @orbisk/vue-use-barcode-detection
 
 > Vue composable wrapping Barcode Detection API
 
-[![npm version](https://img.shields.io/npm/v/%40orbiks%2Fvueuse-barcode-detection.svg)](https://www.npmjs.com/package/@orbiks/vueuse-barcode-detection)
+[![npm version](https://img.shields.io/npm/v/%40orbisk%2Fvue-use-barcode-detection.svg)](https://www.npmjs.com/package/@orbisk/vue-use-barcode-detection)
 [![CI](https://github.com/orbisk/vueuse-barcode-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/orbisk/vueuse-barcode-detection/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 ## Install
 
 ```bash
-pnpm add @orbiks/vueuse-barcode-detection vue @vueuse/core
+pnpm add @orbisk/vue-use-barcode-detection vue @vueuse/core
 ```
 
 `vue` and `@vueuse/core` are peer dependencies — install them alongside the package.
@@ -19,7 +19,7 @@ pnpm add @orbiks/vueuse-barcode-detection vue @vueuse/core
 ```vue
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
-import { useBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
+import { useBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
 
 const video = useTemplateRef<HTMLVideoElement>('video')
 const { isSupported, detected, error } = useBarcodeDetector(video)

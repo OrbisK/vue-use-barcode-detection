@@ -1,5 +1,5 @@
 {
-  "name": "@orbiks/vueuse-barcode-detection",
+  "name": "@orbisk/vue-use-barcode-detection",
   "version": "0.1.0",
   "description": "Vue composable wrapping Barcode Detection API",
   "keywords": [

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
-import { useBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
+import { useBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
 
 const video = useTemplateRef<HTMLVideoElement>('video')
 const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(video)

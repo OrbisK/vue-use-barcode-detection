@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { shallowRef, useTemplateRef } from 'vue'
-import { UseBarcodeDetector, useBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
+import { UseBarcodeDetector, useBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
 
 // 1. Live camera stream
 const video = useTemplateRef<HTMLVideoElement>('video')
@@ -71,7 +71,7 @@ async function onImageLoad() {
 
 <template>
   <main>
-    <h1>@orbiks/vueuse-barcode-detection playground</h1>
+    <h1>@orbisk/vue-use-barcode-detection playground</h1>
 
     <p v-if="!isSupported" class="error">
       <code>BarcodeDetector</code> is not available in this browser.
