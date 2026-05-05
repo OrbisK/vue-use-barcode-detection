@@ -13,31 +13,23 @@ A reactive `useBarcodeDetector` and a drop-in `<UseBarcodeDetector />` component
 
 #links
 :::u-button
-
 ---
-
 color: neutral
 size: xl
 to: /functions/use-barcode-detector
 trailing-icon: i-lucide-arrow-right
-
 ---
-
 Get started
 :::
 
 :::u-button
-
 ---
-
 color: neutral
 icon: simple-icons-github
 size: xl
 to: https://github.com/orbisk/vueuse-barcode-detection
 variant: outline
-
 ---
-
 Star on GitHub
 :::
 ::

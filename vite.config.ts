@@ -34,6 +34,7 @@ export default defineConfig({
     },
   },
   fmt: {
+    ignorePatterns: ['docs/content/**/*.md'],
     singleQuote: true,
     semi: false,
   },
