@@ -7,6 +7,12 @@ import { defineConfig } from 'vite-plus'
 // `vp dev playground` boots the playground (uses playground/index.html as entry).
 // `vp test`, `vp lint`, `vp fmt` read the config blocks below.
 export default defineConfig({
+  pack: {
+    entry: ['src/index.ts', 'src/nuxt.ts'],
+    deps: {
+      neverBundle: ['@nuxt/kit', '@nuxt/schema'],
+    },
+  },
   plugins: [Vue(), basicSsl()],
   server: {
     host: true,
