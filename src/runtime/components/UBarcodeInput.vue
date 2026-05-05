@@ -80,7 +80,9 @@ const isSupported = computed(() => isMounted.value && apiSupported.value)
 const { detected, rejected, error, start, stop } = useBarcodeDetector(video, {
   // Pass formats as a getter so dynamic format changes flow through.
   formats: () => props.formats,
-  accept: props.accept,
+  // Stable closure that reads `props.accept` on each call — lets the parent
+  // swap the predicate at runtime without re-mounting the wrapper.
+  accept: (b) => (props.accept ? props.accept(b) : true),
   // Modal-close decision lives on the wrapper; the composable just streams
   // accepted detections.
   once: false,
