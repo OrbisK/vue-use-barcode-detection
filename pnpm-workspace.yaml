@@ -1,14 +1,19 @@
-shamefullyHoist: false
+packages:
+  - docs
+allowBuilds:
+  '@parcel/watcher': true
+  better-sqlite3: true
+  esbuild: true
+  sharp: set this to true or false
+  vue-demi: set this to true or false
+
+autoInstallPeers: true
+shamefullyHoist: true
 shellEmulator: true
+strictPeerDependencies: false
 
 trustPolicy: no-downgrade
 trustPolicyExclude:
   - chokidar
   - semver
   - undici-types
-
-packages:
-  - docs
-
-autoInstallPeers: true
-strictPeerDependencies: false
