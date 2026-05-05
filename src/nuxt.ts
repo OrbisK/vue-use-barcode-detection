@@ -30,6 +30,12 @@ export default defineNuxtModule({
       filePath: pkgName,
     })
 
+    addComponent({
+      name: 'BarcodeDetectorOverlay',
+      export: 'BarcodeDetectorOverlay',
+      filePath: pkgName,
+    })
+
     // Nuxt-UI-dependent components: register only when @nuxt/ui is installed.
     // The SFC is shipped as a raw `.vue` file under `runtime/` so the
     // consumer's Nuxt build runs its template scanner over it and resolves

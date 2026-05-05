@@ -8,6 +8,7 @@ import type {
   UseBarcodeDetectorReturn,
 } from './index.js'
 import { useBarcodeDetector } from './index.js'
+import { BarcodeDetectorOverlay } from './overlay.js'
 
 export interface UseBarcodeDetectorSlotProps {
   isSupported: boolean
@@ -174,39 +175,11 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
       }
     }
 
-    function renderDefaultOverlay(p: OverlayProps): VNode | null {
-      if (!p.detected.length) return null
-      return h(
-        'svg',
-        {
-          class: 'use-barcode-detector__overlay',
-          viewBox: p.viewBox,
-          preserveAspectRatio: 'none',
-          'aria-hidden': 'true',
-          style: {
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'none',
-          },
-        },
-        p.detected.map((b, i) =>
-          h('polygon', {
-            key: i,
-            points: b.cornerPoints.map((c) => `${c.x},${c.y}`).join(' '),
-            fill: 'rgba(0, 200, 120, 0.15)',
-            stroke: 'rgb(0, 200, 120)',
-            'stroke-width': 4,
-            'vector-effect': 'non-scaling-stroke',
-          }),
-        ),
-      )
-    }
-
     function renderStage(): VNode {
       const op = overlayProps()
-      const overlay = slots.overlay ? slots.overlay(op) : renderDefaultOverlay(op)
+      const overlay = slots.overlay
+        ? slots.overlay(op)
+        : h(BarcodeDetectorOverlay, { detected: op.detected, viewBox: op.viewBox })
       return h(
         'div',
         {

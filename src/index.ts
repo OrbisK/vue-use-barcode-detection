@@ -13,3 +13,8 @@ export {
   type UseBarcodeDetectorOverlaySlotProps,
   type UseBarcodeDetectorSlotProps,
 } from './useBarcodeDetector/detector.js'
+
+export {
+  BarcodeDetectorOverlay,
+  type BarcodeDetectorOverlayInstance,
+} from './useBarcodeDetector/overlay.js'
