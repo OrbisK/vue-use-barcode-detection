@@ -8,11 +8,12 @@ describe('useBarcodeDetector', () => {
   })
 
   it('starts inactive with empty detection state', () => {
-    const { isActive, detected, error, supportedFormats } = useBarcodeDetector(null, {
+    const { isActive, detected, rejected, error, supportedFormats } = useBarcodeDetector(null, {
       immediate: false,
     })
     expect(isActive.value).toBe(false)
     expect(detected.value).toEqual([])
+    expect(rejected.value).toEqual([])
     expect(error.value).toBeNull()
     expect(supportedFormats.value).toEqual([])
   })
@@ -62,7 +63,7 @@ describe('useBarcodeDetector', () => {
     ).not.toThrow()
   })
 
-  it('filters detected barcodes through `accept`', async () => {
+  it('partitions detections into `detected` and `rejected` via `accept`', async () => {
     const result = [
       { rawValue: 'hello', format: 'qr_code', boundingBox: {}, cornerPoints: [] },
       { rawValue: '12345', format: 'code_128', boundingBox: {}, cornerPoints: [] },
@@ -75,7 +76,7 @@ describe('useBarcodeDetector', () => {
     }
     const win = { BarcodeDetector: FakeBarcodeDetector } as unknown as Window
     const seen: string[] = []
-    const { detect, detected } = useBarcodeDetector(null, {
+    const { detect, detected, rejected } = useBarcodeDetector(null, {
       immediate: false,
       accept: (b) => {
         seen.push(b.rawValue)
@@ -84,14 +85,14 @@ describe('useBarcodeDetector', () => {
       window: win,
     })
     const out = await detect({} as Blob)
-    // `accept` filters both the return value and `detected.value`
+    // `accept` filters the return value + `detected.value`; rejects land in `rejected.value`.
     expect(out).toEqual([result[0]])
     expect(detected.value).toEqual([result[0]])
-    // Predicate runs against every barcode in the batch
+    expect(rejected.value).toEqual([result[1]])
     expect(seen).toEqual(['hello', '12345'])
   })
 
-  it('returns the unfiltered list when `accept` is omitted', async () => {
+  it('returns the unfiltered list and an empty `rejected` when `accept` is omitted', async () => {
     const result = [
       { rawValue: 'a', format: 'qr_code', boundingBox: {}, cornerPoints: [] },
       { rawValue: 'b', format: 'code_128', boundingBox: {}, cornerPoints: [] },
@@ -103,12 +104,13 @@ describe('useBarcodeDetector', () => {
       detect = () => Promise.resolve(result)
     }
     const win = { BarcodeDetector: FakeBarcodeDetector } as unknown as Window
-    const { detect, detected } = useBarcodeDetector(null, {
+    const { detect, detected, rejected } = useBarcodeDetector(null, {
       immediate: false,
       window: win,
     })
     const out = await detect({} as Blob)
     expect(out).toEqual(result)
     expect(detected.value).toEqual(result)
+    expect(rejected.value).toEqual([])
   })
 })

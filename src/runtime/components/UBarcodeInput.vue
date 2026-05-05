@@ -2,6 +2,7 @@
 import { useMounted, useSupported } from '@vueuse/core'
 import { computed, ref, shallowRef, watch } from 'vue'
 import {
+  BarcodeDetectorOverlay,
   type BarcodeFormat,
   type DetectedBarcode,
   useBarcodeDetector,
@@ -60,7 +61,7 @@ const apiSupported = useSupported(
 )
 const isSupported = computed(() => isMounted.value && apiSupported.value)
 
-const { detected, error, start, stop } = useBarcodeDetector(video, {
+const { detected, rejected, error, start, stop } = useBarcodeDetector(video, {
   formats: props.formats,
   accept: props.accept,
   // Modal-close decision lives on the wrapper; the composable just streams
@@ -102,7 +103,14 @@ watch(detected, (list) => {
       />
       <template #body>
         <div v-if="open" class="relative w-full">
-          <video ref="video" playsinline muted autoplay class="block w-full rounded-lg" />
+          <div class="relative overflow-hidden rounded-lg">
+            <video ref="video" playsinline muted autoplay class="block w-full" />
+            <BarcodeDetectorOverlay
+              :detected="detected"
+              :rejected="rejected"
+              :view-box="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
+            />
+          </div>
           <UAlert
             v-if="error"
             color="error"

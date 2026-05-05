@@ -97,7 +97,10 @@ export interface UseBarcodeDetectorOptions extends ConfigurableWindow {
 export interface UseBarcodeDetectorReturn {
   isSupported: UseSupportedReturn
   supportedFormats: Readonly<ShallowRef<BarcodeFormat[]>>
+  /** Barcodes that passed the `accept` predicate (or all detections, if no `accept` is set). */
   detected: Readonly<ShallowRef<DetectedBarcode[]>>
+  /** Barcodes the `accept` predicate filtered out. Always empty when `accept` is unset. */
+  rejected: Readonly<ShallowRef<DetectedBarcode[]>>
   error: Readonly<ShallowRef<Error | null>>
   /** True while the camera stream + detection loop are running (video sources only). */
   isActive: Readonly<ShallowRef<boolean>>
@@ -182,6 +185,7 @@ export function useBarcodeDetector(
   const isSupported = useSupported(() => !!window && 'BarcodeDetector' in window)
   const supportedFormats = shallowRef<BarcodeFormat[]>([])
   const detected = shallowRef<DetectedBarcode[]>([])
+  const rejected = shallowRef<DetectedBarcode[]>([])
   const error = shallowRef<Error | null>(null)
   const isActive = shallowRef(false)
 
@@ -189,8 +193,15 @@ export function useBarcodeDetector(
   let detector: BarcodeDetectorLike | null = null
   let detectorInit: Promise<BarcodeDetectorLike | null> | null = null
 
-  function applyAccept(barcodes: DetectedBarcode[]): DetectedBarcode[] {
-    return accept ? barcodes.filter(accept) : barcodes
+  function partition(barcodes: DetectedBarcode[]): {
+    accepted: DetectedBarcode[]
+    rejected: DetectedBarcode[]
+  } {
+    if (!accept) return { accepted: barcodes, rejected: [] }
+    const a: DetectedBarcode[] = []
+    const r: DetectedBarcode[] = []
+    for (const b of barcodes) (accept(b) ? a : r).push(b)
+    return { accepted: a, rejected: r }
   }
 
   async function ensureDetector(): Promise<BarcodeDetectorLike | null> {
@@ -216,11 +227,12 @@ export function useBarcodeDetector(
     if (!d) return []
     try {
       if (isImageElement(input)) await whenImageReady(input)
-      const result = applyAccept(await d.detect(input))
-      detected.value = result
+      const { accepted, rejected: r } = partition(await d.detect(input))
+      detected.value = accepted
+      rejected.value = r
       error.value = null
-      if (once && result.length && isVideoElement(input)) stop()
-      return result
+      if (once && accepted.length && isVideoElement(input)) stop()
+      return accepted
     } catch (e) {
       error.value = e instanceof Error ? e : new Error(String(e))
       return []
@@ -232,9 +244,10 @@ export function useBarcodeDetector(
       const el = toValue(source)
       if (!detector || !el) return
       try {
-        const result = applyAccept(await detector.detect(el))
-        detected.value = result
-        if (once && result.length) stop()
+        const { accepted, rejected: r } = partition(await detector.detect(el))
+        detected.value = accepted
+        rejected.value = r
+        if (once && accepted.length) stop()
       } catch {
         // detect() can throw transiently while the video isn't ready -> ignore
       }
@@ -310,6 +323,7 @@ export function useBarcodeDetector(
     isSupported,
     supportedFormats: shallowReadonly(supportedFormats),
     detected: shallowReadonly(detected),
+    rejected: shallowReadonly(rejected),
     error: shallowReadonly(error),
     isActive: shallowReadonly(isActive),
     detect,

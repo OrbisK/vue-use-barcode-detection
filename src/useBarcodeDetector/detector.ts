@@ -14,6 +14,8 @@ export interface UseBarcodeDetectorSlotProps {
   isSupported: boolean
   supportedFormats: BarcodeFormat[]
   detected: DetectedBarcode[]
+  /** Detections the `accept` predicate filtered out. Always empty when `accept` is unset. */
+  rejected: DetectedBarcode[]
   error: Error | null
   isActive: boolean
   detect: UseBarcodeDetectorReturn['detect']
@@ -27,6 +29,8 @@ export interface UseBarcodeDetectorSlotProps {
 
 export interface UseBarcodeDetectorOverlaySlotProps {
   detected: DetectedBarcode[]
+  /** Detections the `accept` predicate filtered out. Always empty when `accept` is unset. */
+  rejected: DetectedBarcode[]
   video: HTMLVideoElement | null
   /** Pre-computed `viewBox` string matching the video's intrinsic size. */
   viewBox: string
@@ -155,6 +159,7 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
       isSupported: isMounted.value && result.isSupported.value,
       supportedFormats: result.supportedFormats.value,
       detected: result.detected.value,
+      rejected: result.rejected.value,
       error: result.error.value,
       isActive: result.isActive.value,
       detect: result.detect,
@@ -170,6 +175,7 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
       const hgt = v?.videoHeight ?? 0
       return {
         detected: result.detected.value,
+        rejected: result.rejected.value,
         video: v,
         viewBox: `0 0 ${w} ${hgt}`,
       }
@@ -179,7 +185,11 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
       const op = overlayProps()
       const overlay = slots.overlay
         ? slots.overlay(op)
-        : h(BarcodeDetectorOverlay, { detected: op.detected, viewBox: op.viewBox })
+        : h(BarcodeDetectorOverlay, {
+            detected: op.detected,
+            rejected: op.rejected,
+            viewBox: op.viewBox,
+          })
       return h(
         'div',
         {
