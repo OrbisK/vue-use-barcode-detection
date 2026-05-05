@@ -43,4 +43,49 @@ describe('useBarcodeDetector', () => {
     expect(error.value).toBeInstanceOf(Error)
     expect(error.value?.message).toMatch(/BarcodeDetector/)
   })
+
+  it('accepts the `once` option as boolean or predicate', () => {
+    expect(() => useBarcodeDetector(null, { immediate: false, once: true })).not.toThrow()
+    expect(() => useBarcodeDetector(null, { immediate: false, once: false })).not.toThrow()
+    expect(() =>
+      useBarcodeDetector(null, {
+        immediate: false,
+        once: (b) => b.format === 'qr_code',
+      }),
+    ).not.toThrow()
+    expect(() =>
+      useBarcodeDetector(null, {
+        immediate: false,
+        once: (b) => b.rawValue.startsWith('XX-'),
+      }),
+    ).not.toThrow()
+  })
+
+  it('runs the once predicate against detected barcodes', async () => {
+    const result = [
+      { rawValue: 'hello', format: 'qr_code', boundingBox: {}, cornerPoints: [] },
+      { rawValue: '12345', format: 'code_128', boundingBox: {}, cornerPoints: [] },
+    ]
+    class FakeBarcodeDetector {
+      static getSupportedFormats() {
+        return Promise.resolve(['qr_code', 'code_128'])
+      }
+      detect = () => Promise.resolve(result)
+    }
+    const win = { BarcodeDetector: FakeBarcodeDetector } as unknown as Window
+    const seen: string[] = []
+    const { detect, detected } = useBarcodeDetector(null, {
+      immediate: false,
+      once: (b) => {
+        seen.push(b.rawValue)
+        return b.rawValue.startsWith('hello')
+      },
+      window: win,
+    })
+    const out = await detect({} as Blob)
+    expect(out).toEqual(result)
+    expect(detected.value).toEqual(result)
+    // Predicate short-circuits on the first match
+    expect(seen).toEqual(['hello'])
+  })
 })

@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { shallowRef, useTemplateRef } from 'vue'
-import { UseBarcodeDetector, useBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
+import { ref, shallowRef, useTemplateRef } from 'vue'
+import {
+  UseBarcodeDetector,
+  type UseBarcodeDetectorReturn,
+  useBarcodeDetector,
+} from '@orbisk/vue-use-barcode-detection'
 
 // 1. Live camera stream
 const video = useTemplateRef<HTMLVideoElement>('video')
@@ -66,6 +70,16 @@ function onFile(event: Event) {
 
 async function onImageLoad() {
   await detectImage()
+}
+
+// 5. Scan once
+const oncePrefix = ref('')
+const onceScanner = useTemplateRef<UseBarcodeDetectorReturn>('onceScanner')
+function onceMatches(b: { rawValue: string }) {
+  return oncePrefix.value ? b.rawValue.startsWith(oncePrefix.value) : true
+}
+function rearmOnce() {
+  void onceScanner.value?.start()
 }
 </script>
 
@@ -199,6 +213,39 @@ async function onImageLoad() {
         </li>
       </ul>
     </section>
+
+    <section>
+      <h2>5. Scan once</h2>
+      <p>
+        Stops the camera as soon as a matching barcode is detected. Leave the prefix empty to stop
+        on the first barcode of any kind, or type a few characters to filter by
+        <code>rawValue</code>.
+      </p>
+
+      <label>
+        Required prefix:
+        <input v-model="oncePrefix" type="text" placeholder="(any)" />
+      </label>
+
+      <UseBarcodeDetector
+        ref="onceScanner"
+        :once="onceMatches"
+        class="ubd-stage"
+        v-slot="{ detected, isActive, error: onceError }"
+      >
+        <p v-if="onceError" class="error">{{ onceError.message }}</p>
+        <p>
+          <strong>{{ isActive ? 'Scanning…' : 'Stopped.' }}</strong>
+          <button v-if="!isActive" type="button" @click="rearmOnce">Scan again</button>
+        </p>
+        <ul class="results">
+          <li v-for="(b, i) in detected" :key="i">
+            <strong>{{ b.format }}</strong> — <code>{{ b.rawValue }}</code>
+          </li>
+          <li v-if="!detected.length" class="muted">Nothing scanned yet.</li>
+        </ul>
+      </UseBarcodeDetector>
+    </section>
   </main>
 </template>
 
@@ -288,7 +335,23 @@ section:first-of-type {
   border-radius: 0.5rem;
   overflow: hidden;
 }
-input[type='file'] {
+input[type='file'],
+input[type='text'] {
+  font: inherit;
+}
+input[type='text'] {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+}
+section button {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid currentColor;
+  border-radius: 0.25rem;
+  background: transparent;
+  cursor: pointer;
   font: inherit;
 }
 </style>

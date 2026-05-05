@@ -1,7 +1,12 @@
 import { useMounted } from '@vueuse/core'
 import type { PropType, SlotsType, VNode, VNodeRef } from 'vue'
 import { defineComponent, h, shallowRef } from 'vue'
-import type { BarcodeFormat, DetectedBarcode, UseBarcodeDetectorReturn } from './index.js'
+import type {
+  BarcodeFormat,
+  DetectedBarcode,
+  UseBarcodeDetectorOptions,
+  UseBarcodeDetectorReturn,
+} from './index.js'
 import { useBarcodeDetector } from './index.js'
 
 export interface UseBarcodeDetectorSlotProps {
@@ -96,6 +101,15 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
       type: Boolean,
       default: false,
     },
+    /**
+     * Stop after the first detection. `true` stops on any barcode; pass a
+     * predicate to fire only on matching detections (e.g. by format or
+     * `rawValue` prefix).
+     */
+    once: {
+      type: [Boolean, Function] as PropType<UseBarcodeDetectorOptions['once']>,
+      default: false,
+    },
   },
   slots: Object as SlotsType<{
     default: SlotProps
@@ -112,6 +126,7 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
       formats: props.formats,
       immediate: props.immediate,
       camera: props.camera,
+      once: props.once,
     })
 
     expose(result)

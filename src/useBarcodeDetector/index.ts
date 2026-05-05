@@ -73,6 +73,17 @@ export interface UseBarcodeDetectorOptions extends ConfigurableWindow {
    * - `false`: do not touch the video element's stream — use your own.
    */
   camera?: boolean | MediaTrackConstraints
+  /**
+   * Stop after the first detection.
+   * - `false` (default): keep scanning.
+   * - `true`: as soon as any barcode is detected, stop the detection loop and
+   *   release the camera (video sources). The detection result remains in
+   *   `detected`. Call `start()` to re-arm.
+   * - predicate: fire only when at least one detected barcode matches.
+   *   Useful e.g. to filter by format or by `rawValue` prefix:
+   *   `once: (b) => b.rawValue.startsWith('XX-')`.
+   */
+  once?: boolean | ((barcode: DetectedBarcode) => boolean)
 }
 
 export interface UseBarcodeDetectorReturn {
@@ -151,7 +162,10 @@ export function useBarcodeDetector(
   source?: MaybeRefOrGetter<BarcodeImageSource | null | undefined>,
   options: UseBarcodeDetectorOptions = {},
 ): UseBarcodeDetectorReturn {
-  const { formats, immediate = true, camera = true, window = defaultWindow } = options
+  const { formats, immediate = true, camera = true, once = false, window = defaultWindow } = options
+
+  const oncePredicate: ((b: DetectedBarcode) => boolean) | null =
+    once === false ? null : once === true ? () => true : once
 
   const isSupported = useSupported(() => !!window && 'BarcodeDetector' in window)
   const supportedFormats = shallowRef<BarcodeFormat[]>([])
@@ -162,6 +176,11 @@ export function useBarcodeDetector(
   let stream: MediaStream | null = null
   let detector: BarcodeDetectorLike | null = null
   let detectorInit: Promise<BarcodeDetectorLike | null> | null = null
+
+  function shouldFireOnce(barcodes: DetectedBarcode[]): boolean {
+    if (!oncePredicate || !barcodes.length) return false
+    return barcodes.some(oncePredicate)
+  }
 
   async function ensureDetector(): Promise<BarcodeDetectorLike | null> {
     if (detector) return detector
@@ -189,6 +208,7 @@ export function useBarcodeDetector(
       const result = await d.detect(input)
       detected.value = result
       error.value = null
+      if (shouldFireOnce(result) && isVideoElement(input)) stop()
       return result
     } catch (e) {
       error.value = e instanceof Error ? e : new Error(String(e))
@@ -201,7 +221,9 @@ export function useBarcodeDetector(
       const el = toValue(source)
       if (!detector || !el) return
       try {
-        detected.value = await detector.detect(el)
+        const result = await detector.detect(el)
+        detected.value = result
+        if (shouldFireOnce(result)) stop()
       } catch {
         // detect() can throw transiently while the video isn't ready -> ignore
       }
