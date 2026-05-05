@@ -47,10 +47,15 @@ const apiSupported = useSupported(
 )
 const isSupported = computed(() => isMounted.value && apiSupported.value)
 
-const { detected, error, stop } = useBarcodeDetector(video, {
+// Drive `start`/`stop` manually so reopening the modal re-arms the camera.
+// `immediate: true` would only fire once on initial mount.
+const { detected, error, start, stop } = useBarcodeDetector(video, {
   formats: props.formats,
-  immediate: true,
   once: props.once,
+})
+
+watch(video, (el) => {
+  if (el && open.value) void start()
 })
 
 watch(detected, (list) => {
@@ -60,16 +65,12 @@ watch(detected, (list) => {
   emit('scan', first)
   open.value = false
 })
-
-watch(open, (isOpen) => {
-  if (!isOpen) stop()
-})
 </script>
 
 <template>
   <UInput v-model="value" :placeholder="placeholder">
     <template v-if="isSupported" #trailing>
-      <UModal v-model:open="open" :title="scanLabel">
+      <UModal v-model:open="open" :title="scanLabel" @after:leave="stop">
         <UButton
           :icon="icon"
           color="neutral"
@@ -79,29 +80,20 @@ watch(open, (isOpen) => {
           :aria-label="scanLabel"
         />
         <template #body>
-          <div v-if="open" class="ubd-input__stage">
-            <video ref="video" playsinline muted autoplay class="ubd-input__video" />
-            <p v-if="error" class="ubd-input__error">{{ error.message }}</p>
+          <div v-if="open" class="relative w-full">
+            <video ref="video" playsinline muted autoplay class="block w-full rounded-lg" />
+            <UAlert
+              v-if="error"
+              color="error"
+              variant="soft"
+              icon="i-lucide-circle-alert"
+              :title="error.name || 'Scanner error'"
+              :description="error.message"
+              class="mt-2"
+            />
           </div>
         </template>
       </UModal>
     </template>
   </UInput>
 </template>
-
-<style scoped>
-.ubd-input__stage {
-  position: relative;
-  width: 100%;
-}
-.ubd-input__video {
-  width: 100%;
-  display: block;
-  border-radius: 0.5rem;
-}
-.ubd-input__error {
-  margin-top: 0.5rem;
-  color: crimson;
-  font-size: 0.875rem;
-}
-</style>
