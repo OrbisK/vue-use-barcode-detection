@@ -14,7 +14,7 @@ describe('UseBarcodeDetector (component)', () => {
     expect(props).toHaveProperty('camera')
     expect(props).toHaveProperty('headless')
     expect(props).toHaveProperty('once')
-    expect(props.immediate.default).toBe(true)
+    expect(props.immediate.default).toBe(false)
     expect(props.camera.default).toBe(true)
     expect(props.headless.default).toBe(false)
     expect(props.once.default).toBe(false)

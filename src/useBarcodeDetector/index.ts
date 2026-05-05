@@ -63,7 +63,11 @@ export interface UseBarcodeDetectorOptions extends ConfigurableWindow {
    * Auto-start once the source is available.
    * For a video source, starts the camera stream and detection loop.
    * For other sources, runs `detect()` whenever the source changes.
-   * Defaults to `true`.
+   *
+   * Defaults to `false` — calling `getUserMedia` and `video.play()` outside
+   * of a user gesture is rejected by Safari/iOS, so live-camera scanning has
+   * to be wired to a click handler. Set to `true` only if you're sure the
+   * source is available inside a user gesture (or it's not a video).
    */
   immediate?: boolean
   /**
@@ -162,7 +166,13 @@ export function useBarcodeDetector(
   source?: MaybeRefOrGetter<BarcodeImageSource | null | undefined>,
   options: UseBarcodeDetectorOptions = {},
 ): UseBarcodeDetectorReturn {
-  const { formats, immediate = true, camera = true, once = false, window = defaultWindow } = options
+  const {
+    formats,
+    immediate = false,
+    camera = true,
+    once = false,
+    window = defaultWindow,
+  } = options
 
   const oncePredicate: ((b: DetectedBarcode) => boolean) | null =
     once === false ? null : once === true ? () => true : once

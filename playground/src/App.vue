@@ -13,6 +13,9 @@ const {
   supportedFormats,
   detected: streamDetected,
   error: streamError,
+  isActive: streamActive,
+  start: startStream,
+  stop: stopStream,
 } = useBarcodeDetector(video)
 
 // 2. Manual: video element with a "Scan" button instead of a continuous loop
@@ -78,7 +81,7 @@ const onceScanner = useTemplateRef<UseBarcodeDetectorReturn>('onceScanner')
 function onceMatches(b: { rawValue: string }) {
   return oncePrefix.value ? b.rawValue.startsWith(oncePrefix.value) : true
 }
-function rearmOnce() {
+function startOnce() {
   void onceScanner.value?.start()
 }
 </script>
@@ -99,7 +102,7 @@ function rearmOnce() {
       <p v-if="streamError" class="error">{{ streamError.message }}</p>
 
       <div class="stage">
-        <video ref="video" playsinline muted autoplay />
+        <video ref="video" playsinline muted />
         <svg
           v-if="streamDetected.length"
           class="overlay"
@@ -113,6 +116,12 @@ function rearmOnce() {
             class="box"
           />
         </svg>
+      </div>
+
+      <div class="controls">
+        <button type="button" @click="streamActive ? stopStream() : startStream()">
+          {{ streamActive ? 'Stop' : 'Start camera' }}
+        </button>
       </div>
 
       <ul class="results">
@@ -163,8 +172,16 @@ function rearmOnce() {
         <code>&lt;UseBarcodeDetector /&gt;</code> renders the video and a default overlay. The
         default slot exposes the composable state alongside.
       </p>
-      <UseBarcodeDetector v-slot="{ detected, error: cmpError }" class="ubd-stage">
+      <UseBarcodeDetector
+        v-slot="{ detected, error: cmpError, isActive: cmpActive, start: cmpStart, stop: cmpStop }"
+        class="ubd-stage"
+      >
         <p v-if="cmpError" class="error">{{ cmpError.message }}</p>
+        <div class="controls">
+          <button type="button" @click="cmpActive ? cmpStop() : cmpStart()">
+            {{ cmpActive ? 'Stop' : 'Start camera' }}
+          </button>
+        </div>
         <ul class="results">
           <li v-for="(b, i) in detected" :key="i">
             <strong>{{ b.format }}</strong> — <code>{{ b.rawValue }}</code>
@@ -235,8 +252,10 @@ function rearmOnce() {
       >
         <p v-if="onceError" class="error">{{ onceError.message }}</p>
         <p>
-          <strong>{{ isActive ? 'Scanning…' : 'Stopped.' }}</strong>
-          <button v-if="!isActive" type="button" @click="rearmOnce">Scan again</button>
+          <strong>{{ isActive ? 'Scanning…' : detected.length ? 'Stopped.' : 'Idle.' }}</strong>
+          <button v-if="!isActive" type="button" @click="startOnce">
+            {{ detected.length ? 'Scan again' : 'Start camera' }}
+          </button>
         </p>
         <ul class="results">
           <li v-for="(b, i) in detected" :key="i">

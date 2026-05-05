@@ -21,14 +21,17 @@ import { useTemplateRef } from 'vue'
 import { useBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
 
 const video = useTemplateRef<HTMLVideoElement>('video')
-const { isSupported, detected, error } = useBarcodeDetector(video)
+const { isSupported, detected, error, isActive, start, stop } = useBarcodeDetector(video)
 </script>
 
 <template>
   <p v-if="!isSupported">BarcodeDetector is not available in this browser.</p>
   <p v-else-if="error">{{ error.message }}</p>
 
-  <video ref="video" playsinline muted autoplay />
+  <video ref="video" playsinline muted />
+  <button @click="isActive ? stop() : start()">
+    {{ isActive ? 'Stop' : 'Start camera' }}
+  </button>
 
   <ul>
     <li v-for="(b, i) in detected" :key="i">
@@ -38,7 +41,7 @@ const { isSupported, detected, error } = useBarcodeDetector(video)
 </template>
 ```
 
-> Camera access requires a secure context (HTTPS or `localhost`) and user permission.
+> Camera access requires a secure context (HTTPS or `localhost`) and user permission. `start()` must run from a user gesture (e.g. a click) so Safari/iOS will allow `getUserMedia` and `video.play()`.
 
 ## Develop
 

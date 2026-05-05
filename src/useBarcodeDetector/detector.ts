@@ -88,9 +88,15 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
       type: Array as PropType<BarcodeFormat[]>,
       default: undefined,
     },
+    /**
+     * Auto-start the camera + detection loop on mount. Defaults to `false` so
+     * the component works on Safari/iOS, where `getUserMedia` and
+     * `video.play()` must be invoked from a user gesture. Wire `start()` from
+     * the default slot to a button instead.
+     */
     immediate: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     camera: {
       type: [Boolean, Object] as PropType<boolean | MediaTrackConstraints>,

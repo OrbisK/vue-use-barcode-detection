@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
-import { useBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
+import { useBarcodeDetector } from '@orbisk/vueuse-barcode-detection'
 
 const video = useTemplateRef<HTMLVideoElement>('video')
-const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(video)
+const { isSupported, supportedFormats, detected, error, isActive, start, stop } =
+  useBarcodeDetector(video)
 </script>
 
 <template>
@@ -18,7 +19,7 @@ const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(vi
       </p>
 
       <div class="ubd-stage">
-        <video ref="video" playsinline muted autoplay />
+        <video ref="video" playsinline muted />
         <svg
           v-if="detected.length"
           class="ubd-overlay"
@@ -32,6 +33,19 @@ const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(vi
             class="ubd-box"
           />
         </svg>
+        <button
+          v-if="!isActive"
+          type="button"
+          class="ubd-start"
+          :disabled="!isSupported"
+          @click="start"
+        >
+          Start camera
+        </button>
+      </div>
+
+      <div class="ubd-controls">
+        <button v-if="isActive" type="button" class="ubd-btn" @click="stop">Stop</button>
       </div>
 
       <ul class="ubd-results">
@@ -39,7 +53,11 @@ const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(vi
           <strong>{{ b.format }}</strong> — <code>{{ b.rawValue }}</code>
         </li>
         <li v-if="!detected.length" class="ubd-muted">
-          No barcode detected yet — point the camera at one.
+          {{
+            isActive
+              ? 'No barcode detected yet — point the camera at one.'
+              : 'Press “Start camera” to begin scanning.'
+          }}
         </li>
       </ul>
     </div>
@@ -76,6 +94,39 @@ const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(vi
   fill: rgba(0, 200, 120, 0.15);
   stroke: rgb(0, 200, 120);
   stroke-width: 4;
+}
+.ubd-start {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: max-content;
+  height: max-content;
+  padding: 0.6rem 1.1rem;
+  border-radius: 9999px;
+  border: 0;
+  background: rgb(0, 200, 120);
+  color: #000;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ubd-start[disabled] {
+  background: #555;
+  color: #ccc;
+  cursor: not-allowed;
+}
+.ubd-controls {
+  margin-top: 0.5rem;
+  min-height: 2rem;
+}
+.ubd-btn {
+  padding: 0.4rem 0.9rem;
+  border-radius: 0.375rem;
+  border: 1px solid rgb(from currentColor r g b / 0.2);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 .ubd-results {
   margin-top: 1rem;
