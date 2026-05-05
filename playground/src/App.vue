@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, useTemplateRef } from 'vue'
 import {
+  BarcodeDetectorOverlay,
   UseBarcodeDetector,
   type UseBarcodeDetectorReturn,
   useBarcodeDetector,
@@ -103,19 +104,10 @@ function startOnce() {
 
       <div class="stage">
         <video ref="video" playsinline muted />
-        <svg
-          v-if="streamDetected.length"
-          class="overlay"
-          :viewBox="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
-          preserveAspectRatio="xMidYMid slice"
-        >
-          <polygon
-            v-for="(b, i) in streamDetected"
-            :key="i"
-            :points="b.cornerPoints.map((p) => `${p.x},${p.y}`).join(' ')"
-            class="box"
-          />
-        </svg>
+        <BarcodeDetectorOverlay
+          :detected="streamDetected"
+          :view-box="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
+        />
       </div>
 
       <div class="controls">
@@ -206,19 +198,10 @@ function startOnce() {
           crossorigin="anonymous"
           @load="onImageLoad"
         />
-        <svg
-          v-if="imageDetected.length"
-          class="overlay"
-          :viewBox="`0 0 ${uploadImg?.naturalWidth ?? 0} ${uploadImg?.naturalHeight ?? 0}`"
-          preserveAspectRatio="xMidYMid meet"
-        >
-          <polygon
-            v-for="(b, i) in imageDetected"
-            :key="i"
-            :points="b.cornerPoints.map((p) => `${p.x},${p.y}`).join(' ')"
-            class="box"
-          />
-        </svg>
+        <BarcodeDetectorOverlay
+          :detected="imageDetected"
+          :view-box="`0 0 ${uploadImg?.naturalWidth ?? 0} ${uploadImg?.naturalHeight ?? 0}`"
+        />
       </div>
 
       <ul class="results">
@@ -303,18 +286,6 @@ section:first-of-type {
 }
 .stage video {
   object-fit: cover;
-}
-.overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-.box {
-  fill: rgba(0, 200, 120, 0.15);
-  stroke: rgb(0, 200, 120);
-  stroke-width: 4;
 }
 .controls {
   display: flex;
