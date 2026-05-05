@@ -57,7 +57,7 @@
     "coverage": "vp test --coverage",
     "docs:dev": "pnpm -F docs dev",
     "docs:build": "pnpm -F docs build",
-    "docs:generate": "pnpm -F docs generate",
+    "docs:generate": "vp pack && pnpm -F docs generate",
     "docs:preview": "pnpm -F docs preview",
     "release": "bumpp && pnpm publish",
     "prepare": "vp config",
