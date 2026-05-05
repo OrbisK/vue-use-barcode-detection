@@ -39,10 +39,10 @@ Star on GitHub
 
 ## Install
 
-Add the package and its peer `vue` to your project.
+Add the package and its peer dependencies to your project.
 
 ```bash
-pnpm add @orbisk/vue-use-barcode-detection vue
+pnpm add @orbisk/vue-use-barcode-detection vue @vueuse/core
 ```
 
 ## Use
