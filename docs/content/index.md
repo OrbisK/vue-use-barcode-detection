@@ -26,7 +26,9 @@ trailing-icon: i-lucide-arrow-right
 Get started
 :::
 
-## :::u-button
+:::u-button
+
+---
 
 color: neutral
 icon: simple-icons-github
@@ -41,7 +43,7 @@ Star on GitHub
 ::
 
 ::u-container{class="py-16 sm:py-24"}
-::div{class="max-w-3xl mx-auto prose prose-primary dark:prose-invert"}
+:::div{class="max-w-3xl mx-auto prose prose-primary dark:prose-invert"}
 
 ## Install
 
@@ -68,5 +70,5 @@ const { detected } = useBarcodeDetector(video)
 ```
 
 See the [`useBarcodeDetector`](/functions/use-barcode-detector) reference for full options.
-::
+:::
 ::
