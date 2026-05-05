@@ -20,18 +20,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
+      - uses: voidzero-dev/setup-vp@v1
         with:
           node-version: 24
-          cache: pnpm
+          cache: true
 
       - uses: actions/configure-pages@v5
 
-      - run: pnpm install --frozen-lockfile
+      - run: vp install
 
-      - run: pnpm docs:generate
+      - run: vp run docs:generate
         env:
           NUXT_APP_BASE_URL: /${{ github.event.repository.name }}/
 

@@ -20,7 +20,7 @@ jobs:
 
       - run: vp check
 
-      - run: pnpm test:types
+      - run: vp run test:types
 
       - run: vp test
 
