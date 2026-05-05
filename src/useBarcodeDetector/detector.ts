@@ -1,3 +1,4 @@
+import { useMounted } from '@vueuse/core'
 import type { PropType, SlotsType, VNode, VNodeRef } from 'vue'
 import { defineComponent, h, shallowRef } from 'vue'
 import type { BarcodeFormat, DetectedBarcode, UseBarcodeDetectorReturn } from './index.js'
@@ -115,8 +116,12 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
 
     expose(result)
 
+    // Gate browser-API-derived state on `useMounted` so SSR and the client's
+    // first render emit the same value, then flip after hydration.
+    const isMounted = useMounted()
+
     const slotProps = (): SlotProps => ({
-      isSupported: result.isSupported.value,
+      isSupported: isMounted.value && result.isSupported.value,
       supportedFormats: result.supportedFormats.value,
       detected: result.detected.value,
       error: result.error.value,

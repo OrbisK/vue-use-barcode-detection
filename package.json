@@ -63,6 +63,7 @@
     "@types/node": "^22.10.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-vue": "^6.0.6",
+    "@vue/server-renderer": "^3.5.33",
     "@vue/test-utils": "^2.4.9",
     "@vueuse/core": "^14.2.1",
     "bumpp": "^11.0.1",

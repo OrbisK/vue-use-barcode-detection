@@ -178,6 +178,22 @@ import { UseBarcodeDetector } from '@orbiks/vueuse-barcode-detection'
 | `video`    | `HTMLVideoElement \| null` | The internal video element.                                 |
 | `viewBox`  | `string`                   | Pre-computed `viewBox` matching the video's intrinsic size. |
 
+### SSR / hydration
+
+Both the composable and the component are SSR-safe — they don't touch `window`, `navigator`, or any browser-only API during setup. All side effects (creating the detector, requesting the camera, starting the RAF loop) are deferred to `onMounted`, so server-side rendering produces only the static `<video>` element with no overlay.
+
+To prevent hydration mismatches in slot-rendered UI, the `isSupported` slot prop is gated on `useMounted`: it stays `false` during SSR _and_ during the client's first render, then flips to its real value once the component mounts. This means a template like `<p v-if="!isSupported">unsupported</p>` won't trigger a hydration warning.
+
+If you want to skip server rendering entirely (e.g. in Nuxt), wrap the component in `<ClientOnly>`:
+
+```vue
+<template>
+  <ClientOnly>
+    <UseBarcodeDetector />
+  </ClientOnly>
+</template>
+```
+
 ### Exposed instance
 
 The component exposes the entire return of `useBarcodeDetector` on its instance — so you can grab a template ref and call `start()`, `stop()`, etc. from outside.
