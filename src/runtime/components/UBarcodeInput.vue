@@ -62,8 +62,9 @@ const isSupported = computed(() => isMounted.value && apiSupported.value)
 
 const { detected, error, start, stop } = useBarcodeDetector(video, {
   formats: props.formats,
-  // Filter + stop are handled here so `accept` can gate everything
-  // consistently (model update, scan emit, modal close).
+  accept: props.accept,
+  // Modal-close decision lives on the wrapper; the composable just streams
+  // accepted detections.
   once: false,
 })
 
@@ -73,10 +74,9 @@ watch(video, (el) => {
 
 watch(detected, (list) => {
   if (!list.length) return
-  const match = props.accept ? list.find(props.accept) : list[0]
-  if (!match) return
-  value.value = match.rawValue
-  emit('scan', match)
+  const first = list[0]!
+  value.value = first.rawValue
+  emit('scan', first)
   if (props.once) open.value = false
 })
 </script>

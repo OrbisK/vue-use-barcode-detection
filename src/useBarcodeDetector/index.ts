@@ -78,16 +78,20 @@ export interface UseBarcodeDetectorOptions extends ConfigurableWindow {
    */
   camera?: boolean | MediaTrackConstraints
   /**
-   * Stop after the first detection.
+   * Stop after the first accepted detection.
    * - `false` (default): keep scanning.
-   * - `true`: as soon as any barcode is detected, stop the detection loop and
-   *   release the camera (video sources). The detection result remains in
-   *   `detected`. Call `start()` to re-arm.
-   * - predicate: fire only when at least one detected barcode matches.
-   *   Useful e.g. to filter by format or by `rawValue` prefix:
-   *   `once: (b) => b.rawValue.startsWith('XX-')`.
+   * - `true`: as soon as a barcode is detected (and accepted, if `accept` is
+   *   set), stop the detection loop and release the camera (video sources).
+   *   The detection result remains in `detected`. Call `start()` to re-arm.
    */
-  once?: boolean | ((barcode: DetectedBarcode) => boolean)
+  once?: boolean
+  /**
+   * Predicate gating which detections count. Non-matching barcodes are
+   * filtered out of `detected` (and the `detect()` return value), so they
+   * don't trigger watchers or `once`. Useful e.g. to filter by format or
+   * `rawValue` prefix: `accept: (b) => b.rawValue.startsWith('XX-')`.
+   */
+  accept?: (barcode: DetectedBarcode) => boolean
 }
 
 export interface UseBarcodeDetectorReturn {
@@ -171,11 +175,9 @@ export function useBarcodeDetector(
     immediate = false,
     camera = true,
     once = false,
+    accept,
     window = defaultWindow,
   } = options
-
-  const oncePredicate: ((b: DetectedBarcode) => boolean) | null =
-    once === false ? null : once === true ? () => true : once
 
   const isSupported = useSupported(() => !!window && 'BarcodeDetector' in window)
   const supportedFormats = shallowRef<BarcodeFormat[]>([])
@@ -187,9 +189,8 @@ export function useBarcodeDetector(
   let detector: BarcodeDetectorLike | null = null
   let detectorInit: Promise<BarcodeDetectorLike | null> | null = null
 
-  function shouldFireOnce(barcodes: DetectedBarcode[]): boolean {
-    if (!oncePredicate || !barcodes.length) return false
-    return barcodes.some(oncePredicate)
+  function applyAccept(barcodes: DetectedBarcode[]): DetectedBarcode[] {
+    return accept ? barcodes.filter(accept) : barcodes
   }
 
   async function ensureDetector(): Promise<BarcodeDetectorLike | null> {
@@ -215,10 +216,10 @@ export function useBarcodeDetector(
     if (!d) return []
     try {
       if (isImageElement(input)) await whenImageReady(input)
-      const result = await d.detect(input)
+      const result = applyAccept(await d.detect(input))
       detected.value = result
       error.value = null
-      if (shouldFireOnce(result) && isVideoElement(input)) stop()
+      if (once && result.length && isVideoElement(input)) stop()
       return result
     } catch (e) {
       error.value = e instanceof Error ? e : new Error(String(e))
@@ -231,9 +232,9 @@ export function useBarcodeDetector(
       const el = toValue(source)
       if (!detector || !el) return
       try {
-        const result = await detector.detect(el)
+        const result = applyAccept(await detector.detect(el))
         detected.value = result
-        if (shouldFireOnce(result)) stop()
+        if (once && result.length) stop()
       } catch {
         // detect() can throw transiently while the video isn't ready -> ignore
       }

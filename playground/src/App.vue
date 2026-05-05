@@ -246,7 +246,8 @@ function startOnce() {
 
       <UseBarcodeDetector
         ref="onceScanner"
-        :once="onceMatches"
+        once
+        :accept="onceMatches"
         class="ubd-stage"
         v-slot="{ detected, isActive, error: onceError }"
       >

@@ -108,13 +108,21 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
       default: false,
     },
     /**
-     * Stop after the first detection. `true` stops on any barcode; pass a
-     * predicate to fire only on matching detections (e.g. by format or
-     * `rawValue` prefix).
+     * Stop after the first accepted detection. Pair with `accept` to stop
+     * only on matching barcodes.
      */
     once: {
-      type: [Boolean, Function] as PropType<UseBarcodeDetectorOptions['once']>,
+      type: Boolean,
       default: false,
+    },
+    /**
+     * Predicate gating which detections count. Non-matching barcodes are
+     * filtered out of `detected`. Useful e.g. to filter by format or
+     * `rawValue` prefix.
+     */
+    accept: {
+      type: Function as PropType<UseBarcodeDetectorOptions['accept']>,
+      default: undefined,
     },
   },
   slots: Object as SlotsType<{
@@ -133,6 +141,7 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
       immediate: props.immediate,
       camera: props.camera,
       once: props.once,
+      accept: props.accept,
     })
 
     expose(result)
