@@ -18,10 +18,7 @@ const { isSupported, supportedFormats, detected, error } = useBarcodeDetector(vi
 
     <div class="stage">
       <video ref="video" playsinline muted autoplay />
-      <BarcodeDetectorOverlay
-        :detected="detected"
-        :view-box="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
-      />
+      <BarcodeDetectorOverlay :detected="detected" :source="video" />
     </div>
 
     <ul class="results">
