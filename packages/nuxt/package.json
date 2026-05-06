@@ -44,7 +44,7 @@
   "scripts": {
     "prepack": "nuxt-module-build build",
     "prepare": "nuxt-module-build build --stub && nuxt-module-build prepare",
-    "test:types": "vue-tsc --noEmit"
+    "test:types": "nuxt-module-build prepare && vue-tsc --noEmit"
   },
   "dependencies": {
     "@clack/prompts": "^1.3.0",
