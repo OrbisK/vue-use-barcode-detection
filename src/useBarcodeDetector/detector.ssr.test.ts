@@ -51,8 +51,8 @@ describe('UseBarcodeDetector — SSR', () => {
           UseBarcodeDetector,
           { headless: true },
           {
-            default: ({ setVideo }: { setVideo: (el: Element | null) => void }) =>
-              h('video', { ref: setVideo as VNodeRef, 'data-test': 'custom' }),
+            default: ({ setSource }: { setSource: (el: Element | null) => void }) =>
+              h('video', { ref: setSource as VNodeRef, 'data-test': 'custom' }),
           },
         ),
     })
