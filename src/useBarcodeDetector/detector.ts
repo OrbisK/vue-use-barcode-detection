@@ -3,6 +3,7 @@ import type { PropType, SlotsType, VNode, VNodeRef } from 'vue'
 import { defineComponent, h, shallowRef } from 'vue'
 import type {
   BarcodeFormat,
+  BarcodeImageSource,
   DetectedBarcode,
   UseBarcodeDetectorOptions,
   UseBarcodeDetectorReturn,
@@ -21,17 +22,17 @@ export interface UseBarcodeDetectorSlotProps {
   detect: UseBarcodeDetectorReturn['detect']
   start: UseBarcodeDetectorReturn['start']
   stop: UseBarcodeDetectorReturn['stop']
-  /** Current `<video>` element (or whatever the user bound via `setVideo`). */
-  video: HTMLVideoElement | null
-  /** Bind to your own `<video>` via `:ref="setVideo"` when going fully headless. */
-  setVideo: (el: Element | null) => void
+  /** Current source element (or whatever the user bound via `setSource`). */
+  source: HTMLElement | null
+  /** Bind to your own `<video>` / `<img>` / `<canvas>` via `:ref="setSource"` when going fully headless. */
+  setSource: (el: Element | null) => void
 }
 
 export interface UseBarcodeDetectorOverlaySlotProps {
   detected: DetectedBarcode[]
   /** Detections the `accept` predicate filtered out. Always empty when `accept` is unset. */
   rejected: DetectedBarcode[]
-  video: HTMLVideoElement | null
+  source: HTMLElement | null
 }
 
 type SlotProps = UseBarcodeDetectorSlotProps
@@ -44,14 +45,14 @@ type OverlayProps = UseBarcodeDetectorOverlaySlotProps
  * polygons of detected barcodes — drop it in and you have a working scanner.
  *
  * - **`overlay` slot** — replace only the default overlay. Receives
- *   `{ detected, rejected, video }`. The video element is reactive — pass it
- *   to `<BarcodeDetectorOverlay :source="video">` to keep auto-alignment.
+ *   `{ detected, rejected, source }`. The source element is reactive — pass it
+ *   to `<BarcodeDetectorOverlay :source="source">` to keep auto-alignment.
  * - **default slot** — rendered as a sibling _after_ the stage, with full
  *   composable state + actions as slot props. Use this for results lists,
  *   buttons, error messages, etc.
  * - **`headless` prop** — skip the built-in stage entirely. The default slot
- *   becomes the sole rendering and must wire up its own `<video>` via
- *   `setVideo`.
+ *   becomes the sole rendering and must wire up its own source element via
+ *   `setSource`.
  *
  * @example Drop-in scanner
  * ```vue
@@ -71,16 +72,16 @@ type OverlayProps = UseBarcodeDetectorOverlaySlotProps
  * @example Custom overlay only
  * ```vue
  * <UseBarcodeDetector>
- *   <template #overlay="{ detected, video }">
- *     <BarcodeDetectorOverlay :detected="detected" :source="video" :label="...">
+ *   <template #overlay="{ detected, source }">
+ *     <BarcodeDetectorOverlay :detected="detected" :source="source" :label="...">
  *   </template>
  * </UseBarcodeDetector>
  * ```
  *
  * @example Fully headless
  * ```vue
- * <UseBarcodeDetector headless v-slot="{ setVideo, detected }">
- *   <video :ref="setVideo" playsinline muted autoplay />
+ * <UseBarcodeDetector headless v-slot="{ setSource, detected }">
+ *   <video :ref="setSource" playsinline muted autoplay />
  *   <pre>{{ detected }}</pre>
  * </UseBarcodeDetector>
  * ```
@@ -134,18 +135,18 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
     overlay: OverlayProps
   }>,
   setup(props, { slots, expose }) {
-    const video = shallowRef<HTMLVideoElement | null>(null)
-    const setVideo = (el: Element | null) => {
-      video.value = (el as HTMLVideoElement | null) ?? null
+    const source = shallowRef<HTMLElement | null>(null)
+    const setSource = (el: Element | null) => {
+      source.value = (el as HTMLElement | null) ?? null
     }
-    const videoRef: VNodeRef = (el) => setVideo(el as Element | null)
+    const sourceRef: VNodeRef = (el) => setSource(el as Element | null)
 
     // Pass the reactive options as getters so the composable picks up
     // prop changes at runtime (formats rebuilds the detector; once flips
     // stop-on-first behavior live). `accept` stays a stable function
     // reference but reads `props.accept` on each call, so swapping the
     // predicate from the parent flows through too.
-    const result = useBarcodeDetector(video, {
+    const result = useBarcodeDetector(() => source.value as BarcodeImageSource | null, {
       formats: () => props.formats,
       immediate: props.immediate,
       camera: props.camera,
@@ -169,14 +170,14 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
       detect: result.detect,
       start: result.start,
       stop: result.stop,
-      video: video.value,
-      setVideo,
+      source: source.value,
+      setSource,
     })
 
     const overlayProps = (): OverlayProps => ({
       detected: result.detected.value,
       rejected: result.rejected.value,
-      video: video.value,
+      source: source.value,
     })
 
     function renderStage(): VNode {
@@ -186,7 +187,7 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
         : h(BarcodeDetectorOverlay, {
             detected: op.detected,
             rejected: op.rejected,
-            source: op.video,
+            source: op.source,
           })
       return h(
         'div',
@@ -196,7 +197,7 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
         },
         [
           h('video', {
-            ref: videoRef,
+            ref: sourceRef,
             playsinline: '',
             muted: true,
             autoplay: true,
