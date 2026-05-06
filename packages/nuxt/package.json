@@ -1,6 +1,6 @@
 {
   "name": "@orbisk/nuxt-barcode-detection",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Nuxt module for @orbisk/vue-use-barcode-detection (auto-imports, components, polyfill plugin)",
   "keywords": [
     "barcode",
