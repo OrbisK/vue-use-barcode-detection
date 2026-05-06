@@ -140,6 +140,7 @@ This project uses [Vite+](https://viteplus.dev) (`vp`) — one toolchain that bu
 
 ```bash
 pnpm install
+pnpm dev:prepare  # generate the Nuxt module's dev stub (required before docs:dev / typecheck)
 
 pnpm dev          # boot the playground (Vite dev server)
 pnpm test         # vp test in watch mode

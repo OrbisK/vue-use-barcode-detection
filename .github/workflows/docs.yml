@@ -29,6 +29,8 @@ jobs:
 
       - run: vp install
 
+      - run: vp run -r prepack
+
       - run: vp run docs:generate
         env:
           NUXT_APP_BASE_URL: /${{ github.event.repository.name }}/

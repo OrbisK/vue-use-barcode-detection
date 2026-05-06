@@ -56,7 +56,8 @@
     "docs:generate": "vp pack && pnpm -F docs generate",
     "docs:preview": "pnpm -F docs preview",
     "release": "bumpp",
-    "prepare": "vp config && pnpm -F @orbisk/nuxt-barcode-detection prepare",
+    "prepare": "vp config",
+    "dev:prepare": "pnpm -F @orbisk/nuxt-barcode-detection dev:prepare",
     "prepublishOnly": "pnpm build"
   },
   "devDependencies": {
