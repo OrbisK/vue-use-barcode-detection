@@ -1,10 +1,11 @@
 export default defineAppConfig({
   seo: {
-    title: '@orbisk/vue-use-barcode-detection',
-    description: 'Vue composable wrapping the Barcode Detection API.',
+    title: 'Barcode Detection for Vue & Nuxt',
+    description:
+      'A composable, drop-in scanner component, and polygon overlay for the Barcode Detection API. Vue 3 and Nuxt 4 ready.',
   },
   header: {
-    title: '@orbisk/vue-use-barcode-detection',
+    title: 'Barcode Detection for Vue & Nuxt',
   },
   github: {
     url: 'https://github.com/orbisk/vue-use-barcode-detection',

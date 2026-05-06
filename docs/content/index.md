@@ -1,22 +1,22 @@
 ---
 seo:
-  title: '@orbisk/vue-use-barcode-detection'
-  description: Vue composable wrapping the Barcode Detection API.
+  title: Barcode Detection for Vue & Nuxt
+  description: A composable, drop-in scanner component, and polygon overlay for the Barcode Detection API. Vue 3 and Nuxt 4 ready.
 ---
 
 ::u-page-hero
 #title
-Vue composable wrapping the Barcode Detection API
+Barcode Detection for Vue & Nuxt
 
 #description
-A reactive `useBarcodeDetector` and a drop-in `<UseBarcodeDetector />` component for scanning QR codes and barcodes in Vue 3.
+A reactive `useBarcodeDetector` composable, a drop-in `<UseBarcodeDetector />` scanner component, and a `<BarcodeDetectorOverlay />` for drawing polygons over detected codes — plus a Nuxt module that auto-imports them.
 
 #links
 :::u-button
 ---
 color: neutral
 size: xl
-to: /functions/use-barcode-detector
+to: /getting-started
 trailing-icon: i-lucide-arrow-right
 ---
 Get started
@@ -37,30 +37,25 @@ Star on GitHub
 ::u-container{class="py-16 sm:py-24"}
 :::div{class="max-w-3xl mx-auto prose prose-primary dark:prose-invert"}
 
-## Install
-
-Add the package and its peer dependencies to your project.
+## Quick start
 
 ```bash
 pnpm add @orbisk/vue-use-barcode-detection vue @vueuse/core
 ```
 
-## Use
-
 ```vue
 <script setup lang="ts">
-import { useTemplateRef } from 'vue'
-import { useBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
-
-const video = useTemplateRef<HTMLVideoElement>('video')
-const { detected } = useBarcodeDetector(video)
+import { UseBarcodeDetector } from '@orbisk/vue-use-barcode-detection'
 </script>
 
 <template>
-  <video ref="video" playsinline muted autoplay />
+  <UseBarcodeDetector v-slot="{ start, isActive, detected }">
+    <button @click="start" :disabled="isActive">Start camera</button>
+    <pre>{{ detected }}</pre>
+  </UseBarcodeDetector>
 </template>
 ```
 
-See the [`useBarcodeDetector`](/functions/use-barcode-detector) reference for full options.
+Head to [Getting started](/getting-started) for Nuxt setup, the polyfill for non-supporting browsers, and links into the full reference.
 :::
 ::
