@@ -1,5 +1,5 @@
 import type { PropType, VNode } from 'vue'
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, onBeforeUnmount, shallowRef, watch } from 'vue'
 import type { DetectedBarcode } from './index.js'
 
 /**
@@ -24,30 +24,116 @@ export type BarcodeDetectorOverlayLabel = (
   accepted: boolean,
 ) => string | null | undefined
 
+interface VisibleRect {
+  x: number
+  y: number
+  w: number
+  h: number
+  sw: number
+  sh: number
+}
+
+function intrinsicSize(el: Element | null): { w: number; h: number } | null {
+  if (!el) return null
+  if (el instanceof HTMLVideoElement) {
+    return el.videoWidth && el.videoHeight ? { w: el.videoWidth, h: el.videoHeight } : null
+  }
+  if (el instanceof HTMLImageElement) {
+    return el.naturalWidth && el.naturalHeight ? { w: el.naturalWidth, h: el.naturalHeight } : null
+  }
+  if (el instanceof HTMLCanvasElement) {
+    return el.width && el.height ? { w: el.width, h: el.height } : null
+  }
+  return null
+}
+
+// `getComputedStyle().objectPosition` returns normalized values, typically
+// "<x>% <y>%" or "<x>px <y>px". Keywords (left/center/right/top/bottom) are
+// normalized to percentages by the browser, but we still handle them in
+// case a non-standard env (e.g. jsdom) leaves them unresolved.
+function parsePositionAxis(value: string | undefined, range: number): number {
+  if (!value) return range / 2
+  if (value === 'left' || value === 'top') return 0
+  if (value === 'right' || value === 'bottom') return range
+  if (value === 'center') return range / 2
+  if (value.endsWith('%')) return (parseFloat(value) / 100) * range
+  if (value.endsWith('px')) return parseFloat(value)
+  const num = parseFloat(value)
+  return Number.isFinite(num) ? num : range / 2
+}
+
+function computeVisibleRect(source: HTMLElement, anchor: HTMLElement): VisibleRect | null {
+  const intrinsic = intrinsicSize(source)
+  if (!intrinsic) return null
+  const elW = source.clientWidth
+  const elH = source.clientHeight
+  if (!elW || !elH) return null
+
+  const styles = getComputedStyle(source)
+  const fit = styles.objectFit || 'fill'
+  let renderedW = elW
+  let renderedH = elH
+  if (fit === 'cover') {
+    const scale = Math.max(elW / intrinsic.w, elH / intrinsic.h)
+    renderedW = intrinsic.w * scale
+    renderedH = intrinsic.h * scale
+  } else if (fit === 'contain') {
+    const scale = Math.min(elW / intrinsic.w, elH / intrinsic.h)
+    renderedW = intrinsic.w * scale
+    renderedH = intrinsic.h * scale
+  } else if (fit === 'none') {
+    renderedW = intrinsic.w
+    renderedH = intrinsic.h
+  } else if (fit === 'scale-down') {
+    const scale = Math.min(1, elW / intrinsic.w, elH / intrinsic.h)
+    renderedW = intrinsic.w * scale
+    renderedH = intrinsic.h * scale
+  }
+
+  const positionParts = (styles.objectPosition || '50% 50%').split(/\s+/)
+  const offsetX = parsePositionAxis(positionParts[0], elW - renderedW)
+  const offsetY = parsePositionAxis(positionParts[1], elH - renderedH)
+
+  // Position the SVG in the anchor's coordinate system. The anchor is the
+  // SVG's offsetParent (the nearest positioned ancestor) — both elements
+  // typically sit inside the same `position: relative` stage container.
+  const sourceRect = source.getBoundingClientRect()
+  const anchorRect = anchor.getBoundingClientRect()
+
+  return {
+    x: sourceRect.left - anchorRect.left + offsetX,
+    y: sourceRect.top - anchorRect.top + offsetY,
+    w: renderedW,
+    h: renderedH,
+    sw: intrinsic.w,
+    sh: intrinsic.h,
+  }
+}
+
 /**
- * SVG overlay drawing polygons over each detected barcode. Sized to the
- * source's intrinsic dimensions via `viewBox`; absolutely positioned so it
- * can be stacked on top of a `<video>` / `<img>` parent.
+ * SVG overlay drawing polygons over each detected barcode. Pass the source
+ * element (`<video>`, `<img>`, or `<canvas>`) via `source` and the overlay
+ * tracks its rendered visible rect — mirroring `object-fit` and
+ * `object-position` so polygons line up with the visible pixels even when
+ * the container's aspect ratio differs from the source's.
  *
- * Use it directly inside a custom `overlay` slot of `<UseBarcodeDetector />`
- * to keep the default look while adding your own elements alongside it.
+ * Place the overlay as a sibling of the source inside a positioned
+ * container (`position: relative`). The SVG positions itself absolutely.
  *
- * @example Reuse the default overlay in a custom layout
+ * @example Live camera with overlay
  * ```vue
- * <UseBarcodeDetector>
- *   <template #overlay="{ detected, viewBox }">
- *     <BarcodeDetectorOverlay :detected="detected" :view-box="viewBox" />
- *     <span class="my-badge">{{ detected.length }} found</span>
- *   </template>
- * </UseBarcodeDetector>
+ * <div class="stage">
+ *   <video ref="video" playsinline muted autoplay />
+ *   <BarcodeDetectorOverlay :detected="detected" :source="video" />
+ * </div>
  * ```
  *
- * @example Label each polygon with its scanned value
+ * @example Image with accepted/rejected polygons + labels
  * ```vue
  * <BarcodeDetectorOverlay
  *   :detected="detected"
  *   :rejected="rejected"
- *   :view-box="viewBox"
+ *   :source="img"
  *   :label="(b, accepted) => accepted ? b.rawValue : 'invalid'"
  * />
  * ```
@@ -69,10 +155,25 @@ export const BarcodeDetectorOverlay = /* #__PURE__ */ defineComponent({
       type: Array as PropType<DetectedBarcode[]>,
       default: () => [],
     },
-    /** SVG `viewBox` matching the source's intrinsic size. */
+    /**
+     * The `<video>` / `<img>` / `<canvas>` the overlay is drawn over. The
+     * overlay reads its rendered visible rect (accounting for `object-fit`
+     * and `object-position`) and sizes the SVG to exactly that rect — so
+     * polygons land on the visible pixels regardless of how the source is
+     * styled.
+     */
+    source: {
+      type: Object as PropType<HTMLElement | null>,
+      default: null,
+    },
+    /**
+     * SVG `viewBox`. Auto-derived from `source`'s intrinsic size
+     * (`videoWidth`/`videoHeight`, `naturalWidth`/`naturalHeight`, or
+     * canvas width/height). Pass this prop to override.
+     */
     viewBox: {
       type: String,
-      required: true,
+      default: undefined,
     },
     /** Fill for accepted polygons. */
     fill: {
@@ -125,8 +226,75 @@ export const BarcodeDetectorOverlay = /* #__PURE__ */ defineComponent({
     },
   },
   setup(props) {
+    const rect = shallowRef<VisibleRect | null>(null)
+    let resizeObserver: ResizeObserver | undefined
+    let detachSourceListeners: (() => void) | null = null
+
+    function update() {
+      const source = props.source
+      // The SVG is a sibling of the source inside a positioned container;
+      // both share the same offsetParent. Reading from the source avoids a
+      // chicken-and-egg: the SVG only mounts once polygons exist, but we
+      // need the anchor to compute polygons.
+      const anchor = (source?.offsetParent as HTMLElement | null) ?? source?.parentElement ?? null
+      if (!source || !anchor) {
+        rect.value = null
+        return
+      }
+      rect.value = computeVisibleRect(source, anchor)
+    }
+
+    watch(
+      () => props.source,
+      (el, _prev, onCleanup) => {
+        resizeObserver?.disconnect()
+        resizeObserver = undefined
+        detachSourceListeners?.()
+        detachSourceListeners = null
+        rect.value = null
+        if (!el) return
+
+        if (typeof ResizeObserver !== 'undefined') {
+          resizeObserver = new ResizeObserver(() => update())
+          resizeObserver.observe(el)
+        }
+        // Intrinsic dims become available asynchronously: `loadedmetadata`
+        // for <video>, `load` for <img>. ResizeObserver alone doesn't fire
+        // when only intrinsic dims change without a layout change.
+        if (el instanceof HTMLVideoElement) {
+          const onReady = () => update()
+          el.addEventListener('loadedmetadata', onReady)
+          el.addEventListener('resize', onReady)
+          detachSourceListeners = () => {
+            el.removeEventListener('loadedmetadata', onReady)
+            el.removeEventListener('resize', onReady)
+          }
+        } else if (el instanceof HTMLImageElement) {
+          const onLoad = () => update()
+          el.addEventListener('load', onLoad)
+          detachSourceListeners = () => el.removeEventListener('load', onLoad)
+        }
+        update()
+
+        onCleanup(() => {
+          resizeObserver?.disconnect()
+          resizeObserver = undefined
+          detachSourceListeners?.()
+          detachSourceListeners = null
+        })
+      },
+      { immediate: true, flush: 'post' },
+    )
+
+    onBeforeUnmount(() => {
+      resizeObserver?.disconnect()
+      detachSourceListeners?.()
+    })
+
     return () => {
-      if (!props.detected.length && !props.rejected.length) return null
+      const r = rect.value
+      const viewBoxAttr = props.viewBox ?? (r ? `0 0 ${r.sw} ${r.sh}` : null)
+      if ((!props.detected.length && !props.rejected.length) || !viewBoxAttr) return null
 
       const polygon = (b: DetectedBarcode, key: string, fill: string, stroke: string): VNode =>
         h('polygon', {
@@ -209,20 +377,34 @@ export const BarcodeDetectorOverlay = /* #__PURE__ */ defineComponent({
         if (lbl) children.push(lbl)
       })
 
+      // Without a measured rect (no source / pre-mount / SSR) fall back to
+      // filling the offset parent so the SVG still draws something useful
+      // — preserveAspectRatio mirrors the typical `object-fit: cover`.
+      const positioned = r
+        ? {
+            position: 'absolute' as const,
+            left: `${r.x}px`,
+            top: `${r.y}px`,
+            width: `${r.w}px`,
+            height: `${r.h}px`,
+            pointerEvents: 'none' as const,
+          }
+        : {
+            position: 'absolute' as const,
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none' as const,
+          }
+
       return h(
         'svg',
         {
           class: 'use-barcode-detector__overlay',
-          viewBox: props.viewBox,
+          viewBox: viewBoxAttr,
           preserveAspectRatio: 'none',
           'aria-hidden': 'true',
-          style: {
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'none',
-          },
+          style: positioned,
         },
         children,
       )

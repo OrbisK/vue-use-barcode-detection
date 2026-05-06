@@ -104,10 +104,7 @@ function startOnce() {
 
       <div class="stage">
         <video ref="video" playsinline muted />
-        <BarcodeDetectorOverlay
-          :detected="streamDetected"
-          :view-box="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
-        />
+        <BarcodeDetectorOverlay :detected="streamDetected" :source="video" />
       </div>
 
       <div class="controls">
@@ -198,10 +195,7 @@ function startOnce() {
           crossorigin="anonymous"
           @load="onImageLoad"
         />
-        <BarcodeDetectorOverlay
-          :detected="imageDetected"
-          :view-box="`0 0 ${uploadImg?.naturalWidth ?? 0} ${uploadImg?.naturalHeight ?? 0}`"
-        />
+        <BarcodeDetectorOverlay :detected="imageDetected" :source="uploadImg" />
       </div>
 
       <ul class="results">

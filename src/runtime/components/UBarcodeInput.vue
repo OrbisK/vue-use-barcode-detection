@@ -129,11 +129,7 @@ watch(detected, (list) => {
         <div v-if="open" class="relative w-full">
           <div class="relative overflow-hidden rounded-lg">
             <video ref="video" playsinline muted autoplay class="block w-full" />
-            <BarcodeDetectorOverlay
-              :detected="detected"
-              :rejected="rejected"
-              :view-box="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
-            />
+            <BarcodeDetectorOverlay :detected="detected" :rejected="rejected" :source="video" />
           </div>
           <UAlert
             v-if="error"
