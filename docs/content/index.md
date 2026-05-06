@@ -9,7 +9,7 @@ seo:
 Barcode Detection for Vue & Nuxt
 
 #description
-A reactive `useBarcodeDetector` composable, a drop-in `<UseBarcodeDetector />` scanner component, and a `<BarcodeDetectorOverlay />` for drawing polygons over detected codes — plus a Nuxt module that auto-imports them.
+A composable, drop-in scanner component, and polygon overlay for the Barcode Detection API. Vue 3 and Nuxt 4 ready.
 
 #links
 :::u-button
