@@ -2,7 +2,7 @@ import { defineNuxtConfig } from 'nuxt/config'
 
 export default defineNuxtConfig({
   extends: ['docus'],
-  modules: ['@nuxt/ui', '@orbisk/vue-use-barcode-detection/nuxt'],
+  modules: ['@nuxt/ui', '@orbisk/nuxt-barcode-detection'],
   barcodeDetection: {
     polyfill: true,
   },

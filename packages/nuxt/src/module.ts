@@ -10,7 +10,8 @@ import {
 } from '@nuxt/kit'
 import { runInstallWizard } from './install-wizard'
 
-const pkgName = '@orbisk/vue-use-barcode-detection'
+const corePkg = '@orbisk/vue-use-barcode-detection'
+const moduleName = '@orbisk/nuxt-barcode-detection'
 
 export interface ModuleOptions {
   /**
@@ -29,7 +30,7 @@ export interface ModuleOptions {
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
-    name: pkgName,
+    name: moduleName,
     configKey: 'barcodeDetection',
     compatibility: {
       nuxt: '>=4.0.0',
@@ -43,23 +44,23 @@ export default defineNuxtModule<ModuleOptions>({
   },
   setup(options) {
     const { resolve } = createResolver(import.meta.url)
-    const logger = useLogger(pkgName)
+    const logger = useLogger(moduleName)
 
     addImports({
       name: 'useBarcodeDetector',
-      from: pkgName,
+      from: corePkg,
     })
 
     addComponent({
       name: 'UseBarcodeDetector',
       export: 'UseBarcodeDetector',
-      filePath: pkgName,
+      filePath: corePkg,
     })
 
     addComponent({
       name: 'BarcodeDetectorOverlay',
       export: 'BarcodeDetectorOverlay',
-      filePath: pkgName,
+      filePath: corePkg,
     })
 
     // Nuxt-UI-dependent components: register only when @nuxt/ui is installed.

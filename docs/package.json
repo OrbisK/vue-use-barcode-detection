@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@nuxt/ui": "4.7.1",
+    "@orbisk/nuxt-barcode-detection": "workspace:*",
     "@orbisk/vue-use-barcode-detection": "workspace:*",
     "@vueuse/integrations": "^14.0.0",
     "barcode-detector": "^3.1.3",
