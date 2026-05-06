@@ -42,8 +42,8 @@
     }
   },
   "scripts": {
-    "prepack": "nuxt-module-build build",
-    "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare",
+    "prepack": "nuxt-module-build prepare && nuxt-module-build build",
+    "dev:prepare": "nuxt-module-build prepare && nuxt-module-build build --stub",
     "test:types": "nuxt-module-build prepare && vue-tsc --noEmit"
   },
   "dependencies": {
