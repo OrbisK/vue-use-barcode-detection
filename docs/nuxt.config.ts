@@ -7,7 +7,13 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   vite: {
     optimizeDeps: {
-      include: ['@vue/devtools-core', '@vue/devtools-kit', '@vueuse/core'],
+      include: [
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+        '@vueuse/core',
+        'barcode-detector/polyfill',
+        '@vueuse/integrations/useQRCode',
+      ],
       // Keep the workspace package out of the pre-bundle. Otherwise Vite
       // freezes its export list at first dev-server start, and any new
       // export (e.g. BarcodeDetectorOverlay) shipped by `vp pack` looks
