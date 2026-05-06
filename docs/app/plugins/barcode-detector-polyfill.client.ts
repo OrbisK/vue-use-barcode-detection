@@ -4,6 +4,8 @@
 // compiled to wasm) only patches `globalThis` when the API is missing, so
 // native implementations keep winning when they exist.
 export default defineNuxtPlugin(async () => {
+  const isPolyfilled = useState<boolean>('barcode-detector-polyfilled', () => false)
   if ('BarcodeDetector' in window) return
   await import('barcode-detector/polyfill')
+  isPolyfilled.value = true
 })
