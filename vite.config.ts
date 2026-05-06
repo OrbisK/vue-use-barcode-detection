@@ -11,7 +11,17 @@ export default defineConfig({
     entry: ['src/index.ts', 'src/nuxt.ts'],
     copy: [{ from: 'src/runtime/**', to: 'dist', flatten: false }],
     deps: {
-      neverBundle: ['@nuxt/kit', '@nuxt/schema'],
+      neverBundle: [
+        '@clack/prompts',
+        '@nuxt/kit',
+        '@nuxt/schema',
+        'consola',
+        'exsolve',
+        'magicast',
+        'nypm',
+        'pathe',
+        'std-env',
+      ],
     },
   },
   plugins: [Vue(), basicSsl()],

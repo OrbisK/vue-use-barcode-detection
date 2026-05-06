@@ -3,6 +3,9 @@ import { defineNuxtConfig } from 'nuxt/config'
 export default defineNuxtConfig({
   extends: ['docus'],
   modules: ['@nuxt/ui', '@orbisk/vue-use-barcode-detection/nuxt'],
+  barcodeDetection: {
+    polyfill: true,
+  },
   compatibilityDate: '2026-01-01',
   css: ['~/assets/css/main.css'],
   vite: {
@@ -11,7 +14,6 @@ export default defineNuxtConfig({
         '@vue/devtools-core',
         '@vue/devtools-kit',
         '@vueuse/core',
-        'barcode-detector/polyfill',
         '@vueuse/integrations/useQRCode',
       ],
       // Keep the workspace package out of the pre-bundle. Otherwise Vite
