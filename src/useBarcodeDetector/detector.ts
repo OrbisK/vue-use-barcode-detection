@@ -32,8 +32,6 @@ export interface UseBarcodeDetectorOverlaySlotProps {
   /** Detections the `accept` predicate filtered out. Always empty when `accept` is unset. */
   rejected: DetectedBarcode[]
   video: HTMLVideoElement | null
-  /** Pre-computed `viewBox` string matching the video's intrinsic size. */
-  viewBox: string
 }
 
 type SlotProps = UseBarcodeDetectorSlotProps
@@ -46,7 +44,8 @@ type OverlayProps = UseBarcodeDetectorOverlaySlotProps
  * polygons of detected barcodes — drop it in and you have a working scanner.
  *
  * - **`overlay` slot** — replace only the default overlay. Receives
- *   `{ detected, video, viewBox }`.
+ *   `{ detected, rejected, video }`. The video element is reactive — pass it
+ *   to `<BarcodeDetectorOverlay :source="video">` to keep auto-alignment.
  * - **default slot** — rendered as a sibling _after_ the stage, with full
  *   composable state + actions as slot props. Use this for results lists,
  *   buttons, error messages, etc.
@@ -72,8 +71,8 @@ type OverlayProps = UseBarcodeDetectorOverlaySlotProps
  * @example Custom overlay only
  * ```vue
  * <UseBarcodeDetector>
- *   <template #overlay="{ detected, viewBox }">
- *     <svg :viewBox="viewBox"> ... </svg>
+ *   <template #overlay="{ detected, video }">
+ *     <BarcodeDetectorOverlay :detected="detected" :source="video" :label="...">
  *   </template>
  * </UseBarcodeDetector>
  * ```
@@ -174,17 +173,11 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
       setVideo,
     })
 
-    const overlayProps = (): OverlayProps => {
-      const v = video.value
-      const w = v?.videoWidth ?? 0
-      const hgt = v?.videoHeight ?? 0
-      return {
-        detected: result.detected.value,
-        rejected: result.rejected.value,
-        video: v,
-        viewBox: `0 0 ${w} ${hgt}`,
-      }
-    }
+    const overlayProps = (): OverlayProps => ({
+      detected: result.detected.value,
+      rejected: result.rejected.value,
+      video: video.value,
+    })
 
     function renderStage(): VNode {
       const op = overlayProps()
@@ -193,7 +186,7 @@ export const UseBarcodeDetector = /* #__PURE__ */ defineComponent({
         : h(BarcodeDetectorOverlay, {
             detected: op.detected,
             rejected: op.rejected,
-            viewBox: op.viewBox,
+            source: op.video,
           })
       return h(
         'div',

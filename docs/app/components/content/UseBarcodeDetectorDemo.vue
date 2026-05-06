@@ -19,19 +19,7 @@ const { isSupported, supportedFormats, detected, error, isActive, start, stop } 
 
       <div class="ubd-stage">
         <video ref="video" playsinline muted />
-        <svg
-          v-if="detected.length"
-          class="ubd-overlay"
-          :viewBox="`0 0 ${video?.videoWidth ?? 0} ${video?.videoHeight ?? 0}`"
-          preserveAspectRatio="xMidYMid slice"
-        >
-          <polygon
-            v-for="(b, i) in detected"
-            :key="i"
-            :points="b.cornerPoints.map((p) => `${p.x},${p.y}`).join(' ')"
-            class="ubd-box"
-          />
-        </svg>
+        <BarcodeDetectorOverlay :detected="detected" :source="video" />
         <button
           v-if="!isActive"
           type="button"
@@ -81,18 +69,6 @@ const { isSupported, supportedFormats, detected, error, isActive, start, stop } 
   height: 100%;
   object-fit: cover;
   display: block;
-}
-.ubd-overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-.ubd-box {
-  fill: rgba(0, 200, 120, 0.15);
-  stroke: rgb(0, 200, 120);
-  stroke-width: 4;
 }
 .ubd-start {
   position: absolute;
