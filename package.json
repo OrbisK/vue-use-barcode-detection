@@ -36,10 +36,6 @@
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
     },
-    "./nuxt": {
-      "types": "./dist/nuxt.d.mts",
-      "default": "./dist/nuxt.mjs"
-    },
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -53,29 +49,17 @@
     "fmt:check": "vp fmt --check",
     "test": "vp test watch",
     "test:run": "vp test",
-    "test:types": "vue-tsc --noEmit",
+    "test:types": "vue-tsc --noEmit && vp run -F @orbisk/nuxt-barcode-detection test:types",
     "coverage": "vp test --coverage",
     "docs:dev": "pnpm -F docs dev",
     "docs:build": "pnpm -F docs build",
     "docs:generate": "vp pack && pnpm -F docs generate",
     "docs:preview": "pnpm -F docs preview",
-    "release": "bumpp && pnpm publish",
-    "prepare": "vp config",
+    "release": "bumpp",
+    "prepare": "vp config && pnpm -F @orbisk/nuxt-barcode-detection prepare",
     "prepublishOnly": "pnpm build"
   },
-  "dependencies": {
-    "@clack/prompts": "^1.3.0",
-    "@nuxt/kit": "^4.0.0",
-    "consola": "^3.4.0",
-    "exsolve": "^1.0.0",
-    "magicast": "^0.5.0",
-    "nypm": "^0.6.0",
-    "pathe": "^2.0.0",
-    "std-env": "^4.0.0"
-  },
   "devDependencies": {
-    "@nuxt/schema": "^4.0.0",
-    "@nuxt/ui": "^4.7.1",
     "@types/node": "^22.10.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-vue": "^6.0.6",
@@ -90,18 +74,8 @@
     "vue-tsc": "^3.2.7"
   },
   "peerDependencies": {
-    "@nuxt/ui": "^4.0.0",
     "@vueuse/core": "^14.0.0",
-    "barcode-detector": "^3.0.0",
     "vue": "^3.5.0"
-  },
-  "peerDependenciesMeta": {
-    "@nuxt/ui": {
-      "optional": true
-    },
-    "barcode-detector": {
-      "optional": true
-    }
   },
   "packageManager": "pnpm@11.0.5+sha512.94fa09e72016402aefce788e46994e18eb1922998b16b6fd5aa6bafd8ae4dea05d0852f60247fdb7d5ab8199a7b0beda830398f3f80cb9f822398522a1535481"
 }

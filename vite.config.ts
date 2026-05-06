@@ -8,21 +8,7 @@ import { defineConfig } from 'vite-plus'
 // `vp test`, `vp lint`, `vp fmt` read the config blocks below.
 export default defineConfig({
   pack: {
-    entry: ['src/index.ts', 'src/nuxt.ts'],
-    copy: [{ from: 'src/runtime/**', to: 'dist', flatten: false }],
-    deps: {
-      neverBundle: [
-        '@clack/prompts',
-        '@nuxt/kit',
-        '@nuxt/schema',
-        'consola',
-        'exsolve',
-        'magicast',
-        'nypm',
-        'pathe',
-        'std-env',
-      ],
-    },
+    entry: ['src/index.ts'],
   },
   plugins: [Vue(), basicSsl()],
   server: {

@@ -24,4 +24,6 @@ jobs:
 
       - run: vp test
 
-      - run: vp pack
+      - run: vp run -r prepack
+
+      - run: vp run prepack

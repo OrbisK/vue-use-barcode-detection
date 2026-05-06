@@ -23,9 +23,7 @@ jobs:
 
       - run: vp install
 
-      - run: vp pack
-
-      - run: vp pm publish --access public --no-git-checks
+      - run: vp pm publish -r --access public --no-git-checks
 
       - uses: softprops/action-gh-release@v2
         with:
