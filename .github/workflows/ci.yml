@@ -24,6 +24,7 @@ jobs:
 
       - run: vp test
 
+      # Build smoke test: root via `vp pack`, workspace packages via their
+      # `prepack` lifecycle (only `@orbisk/nuxt-barcode-detection` has one).
+      - run: vp pack
       - run: vp run -r prepack
-
-      - run: vp run prepack
