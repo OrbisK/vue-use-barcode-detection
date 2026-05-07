@@ -24,6 +24,33 @@ export type BarcodeDetectorOverlayLabel = (
   accepted: boolean,
 ) => string | null | undefined
 
+/**
+ * Configurable subset of `BarcodeDetectorOverlay`'s props — colors, stroke,
+ * label, etc. Excludes the wiring props (`detected`, `rejected`, `source`)
+ * that wrappers like `UBarcodeInput` provide internally. Use this to type a
+ * single grouped `overlay` prop you forward through to the overlay.
+ */
+export interface BarcodeDetectorOverlayConfig {
+  /** SVG `viewBox`. Auto-derived from the source's intrinsic size when omitted. */
+  viewBox?: string
+  /** Fill for accepted polygons. */
+  fill?: string
+  /** Stroke for accepted polygons. */
+  stroke?: string
+  /** Fill for rejected polygons. */
+  rejectedFill?: string
+  /** Stroke for rejected polygons. */
+  rejectedStroke?: string
+  /** Polygon stroke width (in viewBox units, but rendered non-scaling). */
+  strokeWidth?: number
+  /** Label rendered inside each polygon. Omit to hide labels. */
+  label?: BarcodeDetectorOverlayLabel
+  /** Label text fill. */
+  labelColor?: string
+  /** Label font size, in viewBox units. */
+  labelFontSize?: number
+}
+
 interface VisibleRect {
   x: number
   y: number

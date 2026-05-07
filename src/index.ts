@@ -16,6 +16,7 @@ export {
 
 export {
   BarcodeDetectorOverlay,
+  type BarcodeDetectorOverlayConfig,
   type BarcodeDetectorOverlayInstance,
   type BarcodeDetectorOverlayLabel,
 } from './useBarcodeDetector/overlay.js'

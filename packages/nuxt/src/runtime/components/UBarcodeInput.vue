@@ -3,6 +3,7 @@ import { useMounted, useSupported } from '@vueuse/core'
 import { computed, ref, shallowRef, watch } from 'vue'
 import {
   BarcodeDetectorOverlay,
+  type BarcodeDetectorOverlayConfig,
   type BarcodeFormat,
   type DetectedBarcode,
   useBarcodeDetector,
@@ -47,6 +48,17 @@ interface Props
   scanLabel?: string
   /** Icon for the scan button. Pass any name your Nuxt UI iconset exposes. */
   scanIcon?: string
+  /**
+   * Customize the on-camera overlay drawn over detected barcodes — colors,
+   * stroke, per-barcode label, etc. Forwarded to the underlying
+   * `<BarcodeDetectorOverlay>`.
+   *
+   * @example Show the scanned value above each polygon
+   * ```ts
+   * overlay: { label: (b) => b.rawValue }
+   * ```
+   */
+  overlay?: BarcodeDetectorOverlayConfig
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -64,7 +76,17 @@ const emit = defineEmits<{
 }>()
 
 const inputProps = computed(() => {
-  const { class: _class, formats, once, accept, transform, scanLabel, scanIcon, ...rest } = props
+  const {
+    class: _class,
+    formats,
+    once,
+    accept,
+    transform,
+    scanLabel,
+    scanIcon,
+    overlay,
+    ...rest
+  } = props
   return rest
 })
 
@@ -115,7 +137,13 @@ watch(detected, (list) => {
       @blur="emit('blur', $event)"
       @change="emit('change', $event)"
     />
-    <UModal v-if="isSupported" v-model:open="open" :title="scanLabel" @after:leave="stop">
+    <UModal
+      v-if="isSupported"
+      v-model:open="open"
+      :title="scanLabel"
+      @after:leave="stop"
+      :ui="{ body: 'p-0 sm:p-0' }"
+    >
       <UButton
         :icon="scanIcon"
         :size="size"
@@ -124,12 +152,19 @@ watch(detected, (list) => {
         variant="subtle"
         square
         :aria-label="scanLabel"
-      />
+      >
+        <slot name="button-default"></slot>
+      </UButton>
       <template #body>
         <div v-if="open" class="relative w-full">
-          <div class="relative overflow-hidden rounded-lg">
+          <div class="relative overflow-hidden">
             <video ref="video" playsinline muted autoplay class="block w-full" />
-            <BarcodeDetectorOverlay :detected="detected" :rejected="rejected" :source="video" />
+            <BarcodeDetectorOverlay
+              v-bind="overlay"
+              :detected="detected"
+              :rejected="rejected"
+              :source="video"
+            />
           </div>
           <UAlert
             v-if="error"
