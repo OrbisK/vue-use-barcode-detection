@@ -10,8 +10,6 @@ import {
 } from '@orbisk/vue-use-barcode-detection'
 import type { InputProps } from '@nuxt/ui/components/Input.vue'
 
-defineOptions({ inheritAttrs: false })
-
 interface Props
   extends /* @vue-ignore */ Omit<InputProps, 'modelValue' | 'defaultValue' | 'modelModifiers'> {
   formats?: BarcodeFormat[]
@@ -76,17 +74,7 @@ const emit = defineEmits<{
 }>()
 
 const inputProps = computed(() => {
-  const {
-    class: _class,
-    formats,
-    once,
-    accept,
-    transform,
-    scanLabel,
-    scanIcon,
-    overlay,
-    ...rest
-  } = props
+  const { formats, once, accept, transform, scanLabel, scanIcon, overlay, ...rest } = props
   return rest
 })
 
@@ -129,54 +117,55 @@ watch(detected, (list) => {
 </script>
 
 <template>
-  <UFieldGroup :class="['w-full', props.class]">
-    <UInput
-      v-bind="{ ...$attrs, ...inputProps }"
-      v-model="value"
-      class="flex-1"
-      @blur="emit('blur', $event)"
-      @change="emit('change', $event)"
-    />
-    <UModal
-      v-if="isSupported"
-      v-model:open="open"
-      :title="scanLabel"
-      @after:leave="stop"
-      :ui="{ body: 'p-0 sm:p-0' }"
-    >
-      <UButton
-        :icon="scanIcon"
-        :size="size"
-        :color="color"
-        :disabled="disabled"
-        variant="subtle"
-        square
-        :aria-label="scanLabel"
+  <UInput
+    v-bind="inputProps"
+    v-model="value"
+    @blur="emit('blur', $event)"
+    @change="emit('change', $event)"
+  >
+    <template #trailing>
+      <UModal
+        v-if="isSupported"
+        v-model:open="open"
+        :title="scanLabel"
+        :ui="{ body: 'p-0 sm:p-0' }"
+        @after:leave="stop"
       >
-        <slot name="button-default"></slot>
-      </UButton>
-      <template #body>
-        <div v-if="open" class="relative w-full">
-          <div class="relative overflow-hidden">
-            <video ref="video" playsinline muted autoplay class="block w-full" />
-            <BarcodeDetectorOverlay
-              v-bind="overlay"
-              :detected="detected"
-              :rejected="rejected"
-              :source="video"
+        <UButton
+          :icon="scanIcon"
+          :size="size"
+          :color="color"
+          :disabled="disabled"
+          variant="link"
+          square
+          :aria-label="scanLabel"
+        >
+          <slot name="button-default" />
+        </UButton>
+        <template #body>
+          <div v-if="open" class="relative w-full">
+            <div class="relative overflow-hidden">
+              <video ref="video" playsinline muted autoplay class="block w-full" />
+              <BarcodeDetectorOverlay
+                v-bind="overlay"
+                :detected="detected"
+                :rejected="rejected"
+                :source="video"
+              />
+            </div>
+            <UAlert
+              v-if="error"
+              color="error"
+              variant="soft"
+              icon="i-lucide-circle-alert"
+              :title="error.name || 'Scanner error'"
+              :description="error.message"
+              class="mt-2"
             />
           </div>
-          <UAlert
-            v-if="error"
-            color="error"
-            variant="soft"
-            icon="i-lucide-circle-alert"
-            :title="error.name || 'Scanner error'"
-            :description="error.message"
-            class="mt-2"
-          />
-        </div>
-      </template>
-    </UModal>
-  </UFieldGroup>
+        </template>
+      </UModal>
+      <slot name="trailing"></slot>
+    </template>
+  </UInput>
 </template>
