@@ -69,7 +69,7 @@
   },
   "peerDependencies": {
     "@nuxt/ui": "^4.0.0",
-    "@orbisk/vue-use-barcode-detection": "^0.2.0",
+    "@orbisk/vue-use-barcode-detection": "^0.2.0 || ^0.5.0",
     "barcode-detector": "^3.0.0"
   },
   "peerDependenciesMeta": {
