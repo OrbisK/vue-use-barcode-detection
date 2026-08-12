@@ -25,7 +25,7 @@ jobs:
           node-version: 24
           cache: true
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
       - run: vp install
 
